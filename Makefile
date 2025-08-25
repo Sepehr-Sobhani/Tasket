@@ -1,4 +1,4 @@
-.PHONY: help setup setup-backend setup-frontend install-deps install-backend install-frontend start-backend start-frontend start-dev clean clean-backend clean-frontend lint lint-backend lint-frontend type-check type-check-backend type-check-frontend db-setup db-reset db-migrate generate-types
+.PHONY: help setup setup-backend setup-frontend install-deps install-backend install-frontend start-backend start-frontend start-dev clean clean-backend clean-frontend lint lint-backend lint-frontend type-check type-check-backend type-check-frontend db-setup db-reset db-migrate generate-types setup-pre-commit install-pre-commit pre-commit-all pre-commit-update
 
 # Default target
 help:
@@ -19,6 +19,9 @@ help:
 	@echo "  db-reset       - Reset database (WARNING: destroys all data)"
 	@echo "  db-migrate     - Run database migrations"
 	@echo "  generate-types - Generate TypeScript types from OpenAPI schema"
+	@echo "  setup-pre-commit - Setup pre-commit hooks"
+	@echo "  pre-commit-all - Run all pre-commit hooks on all files"
+	@echo "  pre-commit-update - Update pre-commit hooks"
 	@echo ""
 	@echo "Environment Configuration:"
 	@echo "  - Development: NODE_ENV=development (default)"
@@ -27,7 +30,7 @@ help:
 	@echo ""
 
 # Complete project setup
-setup: db-setup setup-backend setup-frontend
+setup: db-setup setup-backend setup-frontend setup-pre-commit
 	@echo "🎉 Tasket setup complete!"
 	@echo ""
 	@echo "📋 To start the application:"
@@ -140,7 +143,7 @@ db-setup:
 	@echo "🗄️  Setting up PostgreSQL database..."
 	@if command -v psql >/dev/null 2>&1; then \
 		echo "Creating database user 'tasket'..."; \
-		psql postgres -c "CREATE USER tasket WITH PASSWORD 'tasket';" 2>/dev/null || echo "User 'tasket' already exists"; \
+		psql postgres -c "CREATE USER tasket WITH PASSWORD 'tasket';" 2>/dev/null || echo "User 'tasket' already exists"; \  # pragma: allowlist secret
 		echo "Creating database 'tasket'..."; \
 		psql postgres -c "CREATE DATABASE tasket OWNER tasket;" 2>/dev/null || echo "Database 'tasket' already exists"; \
 		echo "✅ Database setup complete"; \
@@ -185,10 +188,10 @@ env-files:
 			echo "Creating backend .env file..."; \
 			cat > backend/.env << 'EOF'; \
 # Database\
-DATABASE_URL=postgresql://tasket:tasket@localhost:5432/tasket\
+DATABASE_URL=postgresql://tasket:tasket@localhost:5432/tasket\  # pragma: allowlist secret
 \
 # Security\
-SECRET_KEY=your-secret-key-change-in-production\
+SECRET_KEY=your-secret-key-change-in-production\  # pragma: allowlist secret
 ACCESS_TOKEN_EXPIRE_MINUTES=480\
 \
 # CORS\
@@ -245,4 +248,40 @@ generate-types:
 	@cd frontend && npm run generate-types
 	@echo "✅ TypeScript types generated"
 
+# Setup pre-commit hooks
+setup-pre-commit: install-pre-commit
+	@echo "🔧 Setting up pre-commit hooks..."
+	@pre-commit install
+	@pre-commit install --hook-type commit-msg
+	@echo "✅ Pre-commit hooks installed"
 
+# Install pre-commit
+install-pre-commit:
+	@echo "📦 Installing pre-commit..."
+	@if ! command -v pre-commit >/dev/null 2>&1; then \
+		if command -v pip3 >/dev/null 2>&1; then \
+			pip3 install pre-commit; \
+		elif command -v pip >/dev/null 2>&1; then \
+			pip install pre-commit; \
+		elif command -v brew >/dev/null 2>&1; then \
+			brew install pre-commit; \
+		else \
+			echo "❌ Error: No package manager found. Please install pre-commit manually:"; \
+			echo "  pip3 install pre-commit  # or"; \
+			echo "  brew install pre-commit  # or"; \
+			echo "  curl -s https://pre-commit.com/install-local.py | python3 -"; \
+			exit 1; \
+		fi; \
+	else \
+		echo "✅ pre-commit already installed"; \
+	fi
+
+# Run all pre-commit hooks on all files
+pre-commit-all:
+	@echo "🔍 Running pre-commit hooks on all files..."
+	@pre-commit run --all-files
+
+# Update pre-commit hooks
+pre-commit-update:
+	@echo "🔄 Updating pre-commit hooks..."
+	@pre-commit autoupdate

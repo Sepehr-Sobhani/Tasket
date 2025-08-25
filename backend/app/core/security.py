@@ -1,24 +1,21 @@
 from datetime import datetime, timedelta
 from typing import Any
 
+from app.core.config import settings
+from app.core.database import get_async_session
+from app.models.user import User
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
-
-from app.core.config import settings
-from app.core.database import get_async_session
-from app.models.user import User
+from sqlalchemy.ext.asyncio import AsyncSession
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 
-def create_access_token(
-    subject: str | Any, expires_delta: timedelta = None
-) -> str:
+def create_access_token(subject: str | Any, expires_delta: timedelta = None) -> str:
     """Create JWT access token"""
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -27,7 +24,9 @@ def create_access_token(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
     to_encode = {"exp": expire, "sub": str(subject)}
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM)
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
     return encoded_jwt
 
 
@@ -43,7 +42,7 @@ def get_password_hash(password: str) -> str:
 
 async def get_current_user_async(
     session: AsyncSession = Depends(get_async_session),
-    credentials: HTTPAuthorizationCredentials = Depends(security)
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> User:
     """Get current authenticated user from JWT token (async)"""
     credentials_exception = HTTPException(
@@ -54,7 +53,9 @@ async def get_current_user_async(
 
     try:
         payload = jwt.decode(
-            credentials.credentials, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            credentials.credentials,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
         )
         username: str = payload.get("sub")
         if username is None:
@@ -70,14 +71,18 @@ async def get_current_user_async(
     return user
 
 
-async def get_current_active_user_async(current_user: User = Depends(get_current_user_async)) -> User:
+async def get_current_active_user_async(
+    current_user: User = Depends(get_current_user_async),
+) -> User:
     """Get current active user (async)"""
     if not current_user.is_active:
         raise HTTPException(status_code=400, detail="Inactive user")
     return current_user
 
 
-async def get_current_superuser_async(current_user: User = Depends(get_current_user_async)) -> User:
+async def get_current_superuser_async(
+    current_user: User = Depends(get_current_user_async),
+) -> User:
     """Get current superuser (async)"""
     if not current_user.is_superuser:
         raise HTTPException(
@@ -86,19 +91,24 @@ async def get_current_superuser_async(current_user: User = Depends(get_current_u
     return current_user
 
 
-def check_user_permission(user: User, project_id: int, required_role: str = "member") -> bool:
+def check_user_permission(
+    user: User, project_id: int, required_role: str = "member"
+) -> bool:
     """Check if user has permission to access a project"""
     return user.can_access_project(project_id, required_role)
 
 
 def require_project_permission(required_role: str = "member"):
     """Decorator to require project permission"""
+
     def decorator(func):
         def wrapper(*args, **kwargs):
             # This would be implemented in the actual route handlers
             # where we have access to the project_id and current_user
             pass
+
         return wrapper
+
     return decorator
 
 
@@ -111,7 +121,9 @@ async def get_current_user_from_token_async(token: str, session: AsyncSession) -
     )
 
     try:
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        payload = jwt.decode(
+            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+        )
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception

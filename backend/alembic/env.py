@@ -1,8 +1,5 @@
 from logging.config import fileConfig
 
-from sqlalchemy import engine_from_config
-from sqlalchemy import pool
-
 from alembic import context
 
 # this is the Alembic Config object, which provides
@@ -17,7 +14,6 @@ if config.config_file_name is not None:
 # add your model's MetaData object here
 # for 'autogenerate' support
 from app.core.database import Base
-from app.models import project, user, task, epic, milestone, notification, github_integration
 
 # Import all models to ensure they are registered with Base.metadata
 target_metadata = Base.metadata
@@ -41,6 +37,7 @@ def run_migrations_offline() -> None:
 
     """
     from app.core.config import settings
+
     url = settings.DATABASE_URL
     context.configure(
         url=url,
@@ -62,15 +59,13 @@ def run_migrations_online() -> None:
     """
     from app.core.config import settings
     from sqlalchemy import create_engine
-    
+
     # Create a synchronous engine for migrations
     database_url = settings.DATABASE_URL
     connectable = create_engine(database_url)
 
     with connectable.connect() as connection:
-        context.configure(
-            connection=connection, target_metadata=target_metadata
-        )
+        context.configure(connection=connection, target_metadata=target_metadata)
 
         with context.begin_transaction():
             context.run_migrations()

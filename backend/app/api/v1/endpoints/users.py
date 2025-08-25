@@ -1,16 +1,16 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Any
 
 from app.core.database import get_async_session
 from app.models.user import User
 from app.schemas.user import User as UserSchema
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[UserSchema])
+@router.get("/", response_model=list[UserSchema])
 async def get_users(
     skip: int = 0,
     limit: int = 100,

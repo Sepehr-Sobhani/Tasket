@@ -3,6 +3,11 @@ from .dashboard import DashboardStats
 from .epic import Epic, EpicCreate, EpicUpdate
 from .github import GitHubAuthRequest, GitHubWebhookPayload
 from .milestone import Milestone, MilestoneCreate, MilestoneUpdate
+from .notification import (
+    NotificationCreate,
+    NotificationListResponse,
+    NotificationResponse,
+)
 from .project import (
     Project,
     ProjectCreate,
@@ -10,6 +15,7 @@ from .project import (
     ProjectMemberCreate,
     ProjectUpdate,
 )
+from .tag import Tag, TagCreate, TagUpdate, TaskTag, TaskTagCreate
 from .task import (
     Task,
     TaskComment,
@@ -19,9 +25,7 @@ from .task import (
     TaskUpdate,
     TaskVote,
 )
-from .tag import Tag, TagCreate, TagUpdate, TaskTag, TaskTagCreate
 from .user import User, UserCreate, UserInDB, UserUpdate
-from .notification import NotificationCreate, NotificationResponse, NotificationListResponse
 
 __all__ = [
     "User",

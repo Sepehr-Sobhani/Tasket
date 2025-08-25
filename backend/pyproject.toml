@@ -65,7 +65,7 @@ dev = [
     # Testing
     "pytest==7.4.3",
     "pytest-asyncio==0.21.1",
-    
+
     # Development tools
     "ruff==0.12.4",
     "ty==0.0.1a15",
@@ -114,4 +114,4 @@ extend-exclude = '''
   | build
   | dist
 )/
-''' 
+'''

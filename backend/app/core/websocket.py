@@ -27,7 +27,11 @@ class ConnectionManager:
             self.user_subscriptions[user_id] = set()
 
         self.active_connections[user_id].append(websocket)
-        logger.info("User connected", user_id=user_id, connection_count=len(self.active_connections[user_id]))
+        logger.info(
+            "User connected",
+            user_id=user_id,
+            connection_count=len(self.active_connections[user_id]),
+        )
 
     def disconnect(self, websocket: WebSocket, user_id: int):
         """Disconnect a user's WebSocket"""
@@ -53,7 +57,9 @@ class ConnectionManager:
             self.user_subscriptions[user_id] = set()
 
         self.user_subscriptions[user_id].add(project_id)
-        logger.info("User subscribed to project", user_id=user_id, project_id=project_id)
+        logger.info(
+            "User subscribed to project", user_id=user_id, project_id=project_id
+        )
 
     def unsubscribe_from_project(self, user_id: int, project_id: int):
         """Unsubscribe a user from project updates"""
@@ -69,7 +75,9 @@ class ConnectionManager:
             if not self.user_subscriptions[user_id]:
                 del self.user_subscriptions[user_id]
 
-        logger.info("User unsubscribed from project", user_id=user_id, project_id=project_id)
+        logger.info(
+            "User unsubscribed from project", user_id=user_id, project_id=project_id
+        )
 
     async def send_personal_message(self, message: dict, user_id: int):
         """Send a message to a specific user"""
@@ -78,9 +86,13 @@ class ConnectionManager:
                 try:
                     await connection.send_text(json.dumps(message))
                 except Exception as e:
-                    logger.error("Failed to send personal message", user_id=user_id, error=str(e))
+                    logger.error(
+                        "Failed to send personal message", user_id=user_id, error=str(e)
+                    )
 
-    async def broadcast_to_project(self, message: dict, project_id: int, exclude_user: int | None = None):
+    async def broadcast_to_project(
+        self, message: dict, project_id: int, exclude_user: int | None = None
+    ):
         """Broadcast a message to all users subscribed to a project"""
         if project_id not in self.project_subscriptions:
             return
@@ -89,7 +101,11 @@ class ConnectionManager:
             if user_id != exclude_user:
                 await self.send_personal_message(message, user_id)
 
-        logger.info("Broadcasted to project", project_id=project_id, message_type=message.get("type"))
+        logger.info(
+            "Broadcasted to project",
+            project_id=project_id,
+            message_type=message.get("type"),
+        )
 
     async def broadcast_to_all(self, message: dict):
         """Broadcast a message to all connected users"""
@@ -124,7 +140,7 @@ class WebSocketMessage:
             "type": "task_created",
             "project_id": project_id,
             "data": task_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -133,7 +149,7 @@ class WebSocketMessage:
             "type": "task_updated",
             "project_id": project_id,
             "data": task_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -142,7 +158,7 @@ class WebSocketMessage:
             "type": "task_deleted",
             "project_id": project_id,
             "task_id": task_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -152,7 +168,7 @@ class WebSocketMessage:
             "project_id": project_id,
             "task_id": task_id,
             "new_status": new_status,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -161,7 +177,7 @@ class WebSocketMessage:
             "type": "comment_added",
             "project_id": project_id,
             "data": comment_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -170,7 +186,7 @@ class WebSocketMessage:
             "type": "user_joined",
             "project_id": project_id,
             "data": user_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -179,7 +195,7 @@ class WebSocketMessage:
             "type": "user_left",
             "project_id": project_id,
             "user_id": user_id,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -188,7 +204,7 @@ class WebSocketMessage:
             "type": "estimation_session_started",
             "project_id": project_id,
             "data": session_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -197,7 +213,7 @@ class WebSocketMessage:
             "type": "estimation_vote",
             "project_id": project_id,
             "data": vote_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }
 
     @staticmethod
@@ -205,5 +221,5 @@ class WebSocketMessage:
         return {
             "type": "notification",
             "data": notification_data,
-            "timestamp": datetime.utcnow().isoformat()
+            "timestamp": datetime.utcnow().isoformat(),
         }

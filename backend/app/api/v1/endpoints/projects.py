@@ -1,19 +1,19 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
+from typing import Any
 
-from app.core.database import get_async_session
 from app.core.auth import current_active_user
-from app.models.project import Project, ProjectMember, ProjectMemberRole
+from app.core.database import get_async_session
 from app.models.user import User
-from app.schemas.project import ProjectCreate, ProjectUpdate, Project as ProjectSchema
 from app.schemas.dashboard import DashboardStats
+from app.schemas.project import Project as ProjectSchema
+from app.schemas.project import ProjectCreate, ProjectUpdate
 from app.services.project import ProjectService
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[ProjectSchema])
+@router.get("/", response_model=list[ProjectSchema])
 async def get_projects(
     skip: int = 0,
     limit: int = 100,
@@ -23,9 +23,7 @@ async def get_projects(
     """Get all projects for the current user"""
     project_service = ProjectService(session)
     projects = await project_service.get_user_projects(
-        user_id=current_user.id,
-        skip=skip,
-        limit=limit
+        user_id=current_user.id, skip=skip, limit=limit
     )
     return projects
 
@@ -51,13 +49,12 @@ async def create_project(
     """Create new project"""
     project_service = ProjectService(session)
     project = await project_service.create_project(
-        project_data=project_in,
-        creator_id=current_user.id
+        project_data=project_in, creator_id=current_user.id
     )
-    
+
     if not project:
         raise HTTPException(status_code=403, detail="Failed to create project")
-    
+
     return project
 
 
@@ -71,13 +68,12 @@ async def get_project(
     """Get project by ID"""
     project_service = ProjectService(session)
     project = await project_service.get_project_by_id(
-        project_id=project_id,
-        user_id=current_user.id
+        project_id=project_id, user_id=current_user.id
     )
-    
+
     if not project:
         raise HTTPException(status_code=404, detail="Project not found")
-    
+
     return project
 
 
@@ -92,14 +88,14 @@ async def update_project(
     """Update project"""
     project_service = ProjectService(session)
     project = await project_service.update_project(
-        project_id=project_id,
-        project_data=project_in,
-        user_id=current_user.id
+        project_id=project_id, project_data=project_in, user_id=current_user.id
     )
-    
+
     if not project:
-        raise HTTPException(status_code=403, detail="Only project admins can update projects")
-    
+        raise HTTPException(
+            status_code=403, detail="Only project admins can update projects"
+        )
+
     return project
 
 
@@ -113,11 +109,12 @@ async def delete_project(
     """Delete project"""
     project_service = ProjectService(session)
     success = await project_service.delete_project(
-        project_id=project_id,
-        user_id=current_user.id
+        project_id=project_id, user_id=current_user.id
     )
-    
+
     if not success:
-        raise HTTPException(status_code=403, detail="Only project owners can delete projects")
-    
+        raise HTTPException(
+            status_code=403, detail="Only project owners can delete projects"
+        )
+
     return {"message": "Project deleted successfully"}

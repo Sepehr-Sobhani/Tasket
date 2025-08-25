@@ -14,10 +14,10 @@ class UserBase(BaseModel):
 class UserCreate(UserBase):
     password: str
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, v):
         if len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         return v
 
 
@@ -29,10 +29,10 @@ class UserUpdate(BaseModel):
     bio: str | None = None
     password: str | None = None
 
-    @validator('password')
+    @validator("password")
     def validate_password(cls, v):
         if v is not None and len(v) < 8:
-            raise ValueError('Password must be at least 8 characters long')
+            raise ValueError("Password must be at least 8 characters long")
         return v
 
 

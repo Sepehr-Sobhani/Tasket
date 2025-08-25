@@ -1,4 +1,5 @@
 from datetime import datetime
+
 from pydantic import BaseModel, validator
 
 
@@ -6,10 +7,10 @@ class TagBase(BaseModel):
     name: str
     color: str  # Hex color code
 
-    @validator('color')
+    @validator("color")
     def validate_color(cls, v):
-        if not v.startswith('#') or len(v) != 7:
-            raise ValueError('Color must be a valid hex color code (e.g., #FF0000)')
+        if not v.startswith("#") or len(v) != 7:
+            raise ValueError("Color must be a valid hex color code (e.g., #FF0000)")
         return v
 
 
@@ -21,10 +22,10 @@ class TagUpdate(BaseModel):
     name: str | None = None
     color: str | None = None
 
-    @validator('color')
+    @validator("color")
     def validate_color(cls, v):
-        if v is not None and (not v.startswith('#') or len(v) != 7):
-            raise ValueError('Color must be a valid hex color code (e.g., #FF0000)')
+        if v is not None and (not v.startswith("#") or len(v) != 7):
+            raise ValueError("Color must be a valid hex color code (e.g., #FF0000)")
         return v
 
 
@@ -54,4 +55,4 @@ class TaskTag(TaskTagBase):
     created_at: datetime
 
     class Config:
-        from_attributes = True 
+        from_attributes = True

@@ -1,15 +1,17 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Any
+
 from app.core.database import get_async_session
 from app.models.milestone import Milestone
-from app.schemas.milestone import MilestoneCreate, Milestone as MilestoneSchema
+from app.schemas.milestone import Milestone as MilestoneSchema
+from app.schemas.milestone import MilestoneCreate
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
 
-@router.get("/", response_model=List[MilestoneSchema])
+@router.get("/", response_model=list[MilestoneSchema])
 async def get_milestones(
     skip: int = 0,
     limit: int = 100,

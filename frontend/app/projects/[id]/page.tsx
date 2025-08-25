@@ -18,7 +18,13 @@ import { CreateTaskForm } from "@/components/task/CreateTaskForm";
 import { TagManager } from "@/components/tag/TagManager";
 import { AppLayout } from "@/components/layout/AppLayout";
 import { Plus, Target, CheckSquare, Tags, ArrowLeft } from "lucide-react";
-import { useProject, useProjectEpics, useProjectTasks, useProjectTags, useUsers } from "@/hooks/use-project";
+import {
+  useProject,
+  useProjectEpics,
+  useProjectTasks,
+  useProjectTags,
+  useUsers,
+} from "@/hooks/use-project";
 import { useCreateEpic, useCreateTask } from "@/hooks/use-project-mutations";
 import { api } from "@/lib/api-client";
 import { components } from "@/types/api-common";
@@ -33,10 +39,14 @@ export default function ProjectDetailPage() {
   const projectId = parseInt(params.id as string);
 
   // Use React Query hooks instead of useState and useEffect
-  const { data: projectData, isLoading: isLoadingProject } = useProject(projectId);
-  const { data: epicsData, isLoading: isLoadingEpics } = useProjectEpics(projectId);
-  const { data: tasksData, isLoading: isLoadingTasks } = useProjectTasks(projectId);
-  const { data: tagsData, isLoading: isLoadingTags } = useProjectTags(projectId);
+  const { data: projectData, isLoading: isLoadingProject } =
+    useProject(projectId);
+  const { data: epicsData, isLoading: isLoadingEpics } =
+    useProjectEpics(projectId);
+  const { data: tasksData, isLoading: isLoadingTasks } =
+    useProjectTasks(projectId);
+  const { data: tagsData, isLoading: isLoadingTags } =
+    useProjectTags(projectId);
   const { data: usersData, isLoading: isLoadingUsers } = useUsers();
 
   const project = projectData;
@@ -47,7 +57,7 @@ export default function ProjectDetailPage() {
 
   const [isCreateEpicModalOpen, setIsCreateEpicModalOpen] = useState(false);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
-  
+
   // Use mutation hooks
   const createEpicMutation = useCreateEpic();
   const createTaskMutation = useCreateTask();

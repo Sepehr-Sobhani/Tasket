@@ -1,4 +1,6 @@
 import enum
+
+from app.core.database import Base
 from sqlalchemy import (
     Boolean,
     Column,
@@ -11,7 +13,6 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.core.database import Base
 
 
 class ProjectVisibility(enum.Enum):
@@ -44,10 +45,14 @@ class Project(Base):
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
     # Relationships
-    members = relationship("ProjectMember", back_populates="project", cascade="all, delete-orphan")
+    members = relationship(
+        "ProjectMember", back_populates="project", cascade="all, delete-orphan"
+    )
     tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
     epics = relationship("Epic", back_populates="project", cascade="all, delete-orphan")
-    milestones = relationship("Milestone", back_populates="project", cascade="all, delete-orphan")
+    milestones = relationship(
+        "Milestone", back_populates="project", cascade="all, delete-orphan"
+    )
     tags = relationship("Tag", back_populates="project", cascade="all, delete-orphan")
 
     def __repr__(self):

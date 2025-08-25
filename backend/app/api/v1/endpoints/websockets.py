@@ -1,14 +1,11 @@
 import json
 
 import structlog
-from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect
-from sqlalchemy.orm import Session
-from typing import Any
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
-
 from app.core.database import get_async_session
 from app.core.websocket import manager
+from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 logger = structlog.get_logger()
 router = APIRouter()
@@ -30,7 +27,9 @@ async def websocket_endpoint(
         manager.disconnect(client_id)
 
 
-async def handle_websocket_message(websocket: WebSocket, user_id: int, message: dict, db: Session):
+async def handle_websocket_message(
+    websocket: WebSocket, user_id: int, message: dict, db: Session
+):
     """Handle incoming WebSocket messages"""
     message_type = message.get("type")
 
@@ -39,27 +38,34 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message: 
             project_id = message.get("project_id")
             if project_id:
                 manager.subscribe_to_project(user_id, project_id)
-                await websocket.send_text(json.dumps({
-                    "type": "subscribed",
-                    "project_id": project_id,
-                    "message": f"Subscribed to project {project_id}"
-                }))
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "subscribed",
+                            "project_id": project_id,
+                            "message": f"Subscribed to project {project_id}",
+                        }
+                    )
+                )
 
         elif message_type == "unsubscribe_project":
             project_id = message.get("project_id")
             if project_id:
                 manager.unsubscribe_from_project(user_id, project_id)
-                await websocket.send_text(json.dumps({
-                    "type": "unsubscribed",
-                    "project_id": project_id,
-                    "message": f"Unsubscribed from project {project_id}"
-                }))
+                await websocket.send_text(
+                    json.dumps(
+                        {
+                            "type": "unsubscribed",
+                            "project_id": project_id,
+                            "message": f"Unsubscribed from project {project_id}",
+                        }
+                    )
+                )
 
         elif message_type == "ping":
-            await websocket.send_text(json.dumps({
-                "type": "pong",
-                "timestamp": message.get("timestamp")
-            }))
+            await websocket.send_text(
+                json.dumps({"type": "pong", "timestamp": message.get("timestamp")})
+            )
 
         elif message_type == "task_move":
             # Handle task drag-and-drop
@@ -69,8 +75,12 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message: 
 
             if all([task_id, new_status, project_id]):
                 # Broadcast task move to project subscribers
-                move_message = WebSocketMessage.task_moved(task_id, new_status, project_id)
-                await manager.broadcast_to_project(move_message, project_id, exclude_user=user_id)
+                move_message = WebSocketMessage.task_moved(
+                    task_id, new_status, project_id
+                )
+                await manager.broadcast_to_project(
+                    move_message, project_id, exclude_user=user_id
+                )
 
         elif message_type == "estimation_vote":
             # Handle estimation voting
@@ -79,22 +89,29 @@ async def handle_websocket_message(websocket: WebSocket, user_id: int, message: 
             project_id = message.get("project_id")
 
             if all([task_id, vote_value, project_id]):
-                vote_message = WebSocketMessage.estimation_vote({
-                    "task_id": task_id,
-                    "vote_value": vote_value,
-                    "user_id": user_id
-                }, project_id)
+                vote_message = WebSocketMessage.estimation_vote(
+                    {"task_id": task_id, "vote_value": vote_value, "user_id": user_id},
+                    project_id,
+                )
                 await manager.broadcast_to_project(vote_message, project_id)
 
         else:
-            await websocket.send_text(json.dumps({
-                "type": "error",
-                "message": f"Unknown message type: {message_type}"
-            }))
+            await websocket.send_text(
+                json.dumps(
+                    {
+                        "type": "error",
+                        "message": f"Unknown message type: {message_type}",
+                    }
+                )
+            )
 
     except Exception as e:
-        logger.error("Error handling WebSocket message", user_id=user_id, message_type=message_type, error=str(e))
-        await websocket.send_text(json.dumps({
-            "type": "error",
-            "message": "Internal server error"
-        }))
+        logger.error(
+            "Error handling WebSocket message",
+            user_id=user_id,
+            message_type=message_type,
+            error=str(e),
+        )
+        await websocket.send_text(
+            json.dumps({"type": "error", "message": "Internal server error"})
+        )

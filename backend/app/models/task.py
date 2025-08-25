@@ -1,8 +1,9 @@
 import enum
+
+from app.core.database import Base
 from sqlalchemy import Column, DateTime, Enum, Float, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-from app.core.database import Base
 
 
 class TaskStatus(enum.Enum):
@@ -19,9 +20,6 @@ class TaskPriority(enum.Enum):
     URGENT = "urgent"
 
 
-
-
-
 class Task(Base):
     __tablename__ = "tasks"
 
@@ -30,7 +28,6 @@ class Task(Base):
     description = Column(Text, nullable=True)
     status = Column(Enum(TaskStatus), default=TaskStatus.DRAFT)
     priority = Column(Enum(TaskPriority), default=TaskPriority.MEDIUM)
-
 
     # Estimates
     time_estimate = Column(Float, nullable=True)  # in hours
@@ -57,18 +54,30 @@ class Task(Base):
     completed_at = Column(DateTime(timezone=True), nullable=True)
 
     # Relationships
-    creator = relationship("User", back_populates="created_tasks", foreign_keys=[creator_id])
-    assignee = relationship("User", back_populates="assigned_tasks", foreign_keys=[assignee_id])
+    creator = relationship(
+        "User", back_populates="created_tasks", foreign_keys=[creator_id]
+    )
+    assignee = relationship(
+        "User", back_populates="assigned_tasks", foreign_keys=[assignee_id]
+    )
     project = relationship("Project", back_populates="tasks")
     epic = relationship("Epic", back_populates="tasks")
     milestone = relationship("Milestone", back_populates="tasks")
-    comments = relationship("TaskComment", back_populates="task", cascade="all, delete-orphan")
-    estimates = relationship("TaskEstimate", back_populates="task", cascade="all, delete-orphan")
-    votes = relationship("TaskVote", back_populates="task", cascade="all, delete-orphan")
+    comments = relationship(
+        "TaskComment", back_populates="task", cascade="all, delete-orphan"
+    )
+    estimates = relationship(
+        "TaskEstimate", back_populates="task", cascade="all, delete-orphan"
+    )
+    votes = relationship(
+        "TaskVote", back_populates="task", cascade="all, delete-orphan"
+    )
     tags = relationship("TaskTag", back_populates="task", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<Task(id={self.id}, title='{self.title}', status='{self.status.value}')>"
+        return (
+            f"<Task(id={self.id}, title='{self.title}', status='{self.status.value}')>"
+        )
 
 
 class Tag(Base):
@@ -85,7 +94,9 @@ class Tag(Base):
 
     # Relationships
     project = relationship("Project", back_populates="tags")
-    task_tags = relationship("TaskTag", back_populates="tag", cascade="all, delete-orphan")
+    task_tags = relationship(
+        "TaskTag", back_populates="tag", cascade="all, delete-orphan"
+    )
 
     def __repr__(self):
         return f"<Tag(id={self.id}, name='{self.name}', project_id={self.project_id})>"

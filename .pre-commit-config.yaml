@@ -1,0 +1,69 @@
+repos:
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+      - id: check-merge-conflict
+      - id: check-case-conflict
+      - id: debug-statements
+
+  # Python backend hooks
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.12.4
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^backend/.*\.py$
+      - id: ruff-format
+        files: ^backend/.*\.py$
+
+  # Python import sorting
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        args: ["--profile", "black"]
+        files: ^backend/.*\.py$
+
+  # Python type checking with ty
+  - repo: local
+    hooks:
+      - id: ty
+        name: ty
+        entry: cd backend && uv run ty check
+        language: system
+        files: ^backend/.*\.py$
+        pass_filenames: false
+
+  # Frontend TypeScript/JavaScript hooks
+  - repo: local
+    hooks:
+      - id: eslint
+        name: eslint
+        entry: cd frontend && npm run lint
+        language: system
+        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+        pass_filenames: false
+
+  # Frontend code formatting
+  - repo: local
+    hooks:
+      - id: prettier
+        name: prettier
+        entry: cd frontend && npm run format
+        language: system
+        files: ^frontend/.*\.(js|jsx|ts|tsx|json|css|scss|html|yaml|md)$
+        pass_filenames: false
+
+  # Security checks - detect secrets and credentials
+  - repo: https://github.com/Yelp/detect-secrets
+    rev: v1.4.0
+    hooks:
+      - id: detect-secrets
+        exclude: ^(frontend/|backend/venv/|\.venv/|node_modules/)

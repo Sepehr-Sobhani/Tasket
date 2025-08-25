@@ -1,9 +1,6 @@
 from datetime import timedelta
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
-
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import (
@@ -17,17 +14,18 @@ from app.schemas.user import User as UserSchema
 from app.schemas.user import UserCreate
 from app.services.github import GitHubService
 from app.services.google import GoogleService
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
 
 router = APIRouter()
 
 
 @router.post("/login", response_model=Token)
-def login(
-    login_data: LoginRequest,
-    db: Session = Depends(get_db)
-) -> Any:
+def login(login_data: LoginRequest, db: Session = Depends(get_db)) -> Any:
     """Login with username and password"""
-    user = authenticate_user(db, username=login_data.username, password=login_data.password)
+    user = authenticate_user(
+        db, username=login_data.username, password=login_data.password
+    )
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -50,10 +48,7 @@ def login(
 
 
 @router.post("/register", response_model=UserSchema)
-def register(
-    user_in: UserCreate,
-    db: Session = Depends(get_db)
-) -> Any:
+def register(user_in: UserCreate, db: Session = Depends(get_db)) -> Any:
     """Register a new user"""
     # Check if user already exists
     user = db.query(User).filter(User.username == user_in.username).first()
@@ -88,10 +83,7 @@ def register(
 
 
 @router.post("/github", response_model=Token)
-def github_auth(
-    auth_data: GitHubAuthRequest,
-    db: Session = Depends(get_db)
-) -> Any:
+def github_auth(auth_data: GitHubAuthRequest, db: Session = Depends(get_db)) -> Any:
     """Authenticate with GitHub OAuth"""
     github_service = GitHubService()
 
@@ -155,16 +147,15 @@ def github_auth(
 
 
 @router.post("/google", response_model=Token)
-def google_auth(
-    auth_data: GoogleAuthRequest,
-    db: Session = Depends(get_db)
-) -> Any:
+def google_auth(auth_data: GoogleAuthRequest, db: Session = Depends(get_db)) -> Any:
     """Authenticate with Google OAuth"""
     google_service = GoogleService()
 
     try:
         # Exchange code for access token
-        access_token = google_service.exchange_code_for_token(auth_data.code, auth_data.redirect_uri)
+        access_token = google_service.exchange_code_for_token(
+            auth_data.code, auth_data.redirect_uri
+        )
 
         # Get user info from Google
         google_user = google_service.get_user_info(access_token)
@@ -183,7 +174,9 @@ def google_auth(
             else:
                 # Create new user
                 user = User(
-                    username=google_user["email"].split("@")[0],  # Use email prefix as username
+                    username=google_user["email"].split("@")[
+                        0
+                    ],  # Use email prefix as username
                     email=google_user["email"],
                     full_name=google_user.get("name", ""),
                     avatar_url=google_user.get("picture", ""),

@@ -1,8 +1,7 @@
+from app.core.database import Base
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.core.database import Base
 
 
 class Epic(Base):
@@ -29,4 +28,6 @@ class Epic(Base):
     tasks = relationship("Task", back_populates="epic")
 
     def __repr__(self):
-        return f"<Epic(id={self.id}, title='{self.title}', project_id={self.project_id})>"
+        return (
+            f"<Epic(id={self.id}, title='{self.title}', project_id={self.project_id})>"
+        )

@@ -1,8 +1,7 @@
 from datetime import datetime
 
-from pydantic import BaseModel, validator
-
 from app.models.task import TaskPriority, TaskStatus
+from pydantic import BaseModel, validator
 
 
 class TaskBase(BaseModel):
@@ -17,16 +16,16 @@ class TaskBase(BaseModel):
     milestone_id: int | None = None
     due_date: datetime | None = None
 
-    @validator('time_estimate')
+    @validator("time_estimate")
     def validate_time_estimate(cls, v):
         if v is not None and v <= 0:
-            raise ValueError('Time estimate must be positive')
+            raise ValueError("Time estimate must be positive")
         return v
 
-    @validator('story_points')
+    @validator("story_points")
     def validate_story_points(cls, v):
         if v is not None and v <= 0:
-            raise ValueError('Story points must be positive')
+            raise ValueError("Story points must be positive")
         return v
 
 
@@ -48,16 +47,16 @@ class TaskUpdate(BaseModel):
     due_date: datetime | None = None
     position: int | None = None
 
-    @validator('time_estimate')
+    @validator("time_estimate")
     def validate_time_estimate(cls, v):
         if v is not None and v <= 0:
-            raise ValueError('Time estimate must be positive')
+            raise ValueError("Time estimate must be positive")
         return v
 
-    @validator('story_points')
+    @validator("story_points")
     def validate_story_points(cls, v):
         if v is not None and v <= 0:
-            raise ValueError('Story points must be positive')
+            raise ValueError("Story points must be positive")
         return v
 
 
@@ -99,16 +98,16 @@ class TaskEstimateBase(BaseModel):
     time_estimate: float | None = None
     story_points: int | None = None
 
-    @validator('time_estimate')
+    @validator("time_estimate")
     def validate_time_estimate(cls, v):
         if v is not None and v <= 0:
-            raise ValueError('Time estimate must be positive')
+            raise ValueError("Time estimate must be positive")
         return v
 
-    @validator('story_points')
+    @validator("story_points")
     def validate_story_points(cls, v):
         if v is not None and v <= 0:
-            raise ValueError('Story points must be positive')
+            raise ValueError("Story points must be positive")
         return v
 
 
@@ -126,10 +125,10 @@ class TaskEstimate(TaskEstimateBase):
 class TaskVoteBase(BaseModel):
     vote_value: int
 
-    @validator('vote_value')
+    @validator("vote_value")
     def validate_vote_value(cls, v):
         if v < 1 or v > 5:
-            raise ValueError('Vote value must be between 1 and 5')
+            raise ValueError("Vote value must be between 1 and 5")
         return v
 
 

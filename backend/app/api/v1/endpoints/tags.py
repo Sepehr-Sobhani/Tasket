@@ -1,19 +1,20 @@
-from typing import Any, List
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
+from typing import Any
 
-from app.core.database import get_async_session
 from app.core.auth import current_active_user
-from app.models.task import Tag, TaskTag
+from app.core.database import get_async_session
 from app.models.project import ProjectMember
+from app.models.task import Tag
 from app.models.user import User
-from app.schemas.tag import TagCreate, TagUpdate, Tag as TagSchema
+from app.schemas.tag import Tag as TagSchema
+from app.schemas.tag import TagCreate, TagUpdate
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
 
-@router.get("/project/{project_id}", response_model=List[TagSchema])
+@router.get("/project/{project_id}", response_model=list[TagSchema])
 async def get_tags_by_project(
     *,
     session: AsyncSession = Depends(get_async_session),
@@ -25,14 +26,16 @@ async def get_tags_by_project(
     stmt = select(ProjectMember).where(
         ProjectMember.project_id == project_id,
         ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True
+        ProjectMember.is_active == True,
     )
     result = await session.execute(stmt)
     project_member = result.scalar_one_or_none()
-    
+
     if not project_member:
-        raise HTTPException(status_code=403, detail="You must be a member of the project to view tags")
-    
+        raise HTTPException(
+            status_code=403, detail="You must be a member of the project to view tags"
+        )
+
     stmt = select(Tag).where(Tag.project_id == project_id)
     result = await session.execute(stmt)
     tags = result.scalars().all()
@@ -51,14 +54,16 @@ async def create_tag(
     stmt = select(ProjectMember).where(
         ProjectMember.project_id == tag_in.project_id,
         ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True
+        ProjectMember.is_active == True,
     )
     result = await session.execute(stmt)
     project_member = result.scalar_one_or_none()
-    
+
     if not project_member:
-        raise HTTPException(status_code=403, detail="You must be a member of the project to create tags")
-    
+        raise HTTPException(
+            status_code=403, detail="You must be a member of the project to create tags"
+        )
+
     tag = Tag(**tag_in.model_dump())
     session.add(tag)
     await session.commit()
@@ -76,10 +81,14 @@ async def update_tag(
 ) -> Any:
     """Update tag"""
     # Check if user is a member of the project
-    stmt = select(Tag).join(ProjectMember).where(
-        Tag.id == tag_id,
-        ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True
+    stmt = (
+        select(Tag)
+        .join(ProjectMember)
+        .where(
+            Tag.id == tag_id,
+            ProjectMember.user_id == current_user.id,
+            ProjectMember.is_active == True,
+        )
     )
     result = await session.execute(stmt)
     tag = result.scalar_one_or_none()
@@ -106,10 +115,14 @@ async def delete_tag(
 ) -> Any:
     """Delete tag"""
     # Check if user is a member of the project
-    stmt = select(Tag).join(ProjectMember).where(
-        Tag.id == tag_id,
-        ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True
+    stmt = (
+        select(Tag)
+        .join(ProjectMember)
+        .where(
+            Tag.id == tag_id,
+            ProjectMember.user_id == current_user.id,
+            ProjectMember.is_active == True,
+        )
     )
     result = await session.execute(stmt)
     tag = result.scalar_one_or_none()
@@ -118,4 +131,4 @@ async def delete_tag(
 
     await session.delete(tag)
     await session.commit()
-    return {"message": "Tag deleted successfully"} 
+    return {"message": "Tag deleted successfully"}

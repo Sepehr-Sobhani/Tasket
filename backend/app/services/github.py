@@ -1,9 +1,8 @@
 from typing import Any
 
 import httpx
-from fastapi import HTTPException
-
 from app.core.config import settings
+from fastapi import HTTPException
 
 
 class GitHubService:
@@ -124,9 +123,7 @@ class GitHubService:
             )
 
             if response.status_code not in [200, 201]:
-                raise HTTPException(
-                    status_code=400, detail="Failed to create webhook"
-                )
+                raise HTTPException(status_code=400, detail="Failed to create webhook")
 
             return response.json()
 

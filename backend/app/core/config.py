@@ -1,5 +1,3 @@
-import os
-
 from pydantic import validator
 from pydantic_settings import BaseSettings
 
@@ -10,16 +8,18 @@ class Settings(BaseSettings):
     PROJECT_NAME: str = "Tasket"
 
     # Security
-    SECRET_KEY: str = "your-secret-key-change-in-production"
+    SECRET_KEY: str = "your-secret-key-change-in-production"  # pragma: allowlist secret
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
     ALGORITHM: str = "HS256"
 
     # Database
-    DATABASE_URL: str = "postgresql://tasket:tasket@localhost:5432/tasket"
+    DATABASE_URL: str = (
+        "postgresql://tasket:tasket@localhost:5432/tasket"  # pragma: allowlist secret
+    )
 
     # CORS
     ALLOWED_HOSTS: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
-    
+
     # Frontend URL for OAuth redirects
     FRONTEND_URL: str = "http://localhost:3000"
 
@@ -46,12 +46,12 @@ class Settings(BaseSettings):
     # Environment
     ENVIRONMENT: str = "development"
     DEBUG: bool = True
-    
+
     # Server Configuration
     HOST: str = "0.0.0.0"
     PORT: int = 8000
     LOG_LEVEL: str = "INFO"
-    
+
     # Security Settings
     HTTPS_ONLY: bool = False  # Set to True in production for secure cookies
 

@@ -1,10 +1,9 @@
-from passlib.context import CryptContext
+from app.core.database import Base
 from fastapi_users.db import SQLAlchemyBaseUserTable
-from sqlalchemy import Boolean, Column, DateTime, Integer, String, Text, ForeignKey
+from passlib.context import CryptContext
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
-
-from app.core.database import Base
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
@@ -16,7 +15,9 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(100), unique=True, index=True, nullable=False)
     full_name = Column(String(255), nullable=True)
-    hashed_password = Column(String(255), nullable=True)  # Nullable for GitHub OAuth users
+    hashed_password = Column(
+        String(255), nullable=True
+    )  # Nullable for GitHub OAuth users
     is_active = Column(Boolean, default=True)
     is_superuser = Column(Boolean, default=False)
     is_verified = Column(Boolean, default=False)
@@ -33,12 +34,18 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 
     # Relationships
     projects = relationship("ProjectMember", back_populates="user")
-    created_tasks = relationship("Task", back_populates="creator", foreign_keys="Task.creator_id")
-    assigned_tasks = relationship("Task", back_populates="assignee", foreign_keys="Task.assignee_id")
+    created_tasks = relationship(
+        "Task", back_populates="creator", foreign_keys="Task.creator_id"
+    )
+    assigned_tasks = relationship(
+        "Task", back_populates="assignee", foreign_keys="Task.assignee_id"
+    )
     task_comments = relationship("TaskComment", back_populates="user")
     task_estimates = relationship("TaskEstimate", back_populates="user")
     task_votes = relationship("TaskVote", back_populates="user")
-    notifications = relationship("Notification", back_populates="user", cascade="all, delete-orphan")
+    notifications = relationship(
+        "Notification", back_populates="user", cascade="all, delete-orphan"
+    )
 
     def verify_password(self, plain_password: str) -> bool:
         """Verify a plain password against the hashed password"""
@@ -59,7 +66,9 @@ class User(SQLAlchemyBaseUserTable[int], Base):
         """Check if user is authenticated"""
         return self.is_active and (self.hashed_password or self.github_id)
 
-    def can_access_project(self, project_id: int, required_role: str = "member") -> bool:
+    def can_access_project(
+        self, project_id: int, required_role: str = "member"
+    ) -> bool:
         """Check if user can access a project with the required role"""
         if self.is_superuser:
             return True

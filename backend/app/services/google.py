@@ -1,9 +1,8 @@
 from typing import Any
 
 import httpx
-from fastapi import HTTPException
-
 from app.core.config import settings
+from fastapi import HTTPException
 
 
 class GoogleService:
@@ -40,7 +39,8 @@ class GoogleService:
             data = response.json()
             if "error" in data:
                 raise HTTPException(
-                    status_code=400, detail=f"Google error: {data.get('error_description', data['error'])}"
+                    status_code=400,
+                    detail=f"Google error: {data.get('error_description', data['error'])}",
                 )
 
             return data["access_token"]
@@ -79,4 +79,4 @@ class GoogleService:
             params["state"] = state
 
         query_string = "&".join([f"{k}={v}" for k, v in params.items()])
-        return f"{self.auth_url}/o/oauth2/auth?{query_string}" 
+        return f"{self.auth_url}/o/oauth2/auth?{query_string}"

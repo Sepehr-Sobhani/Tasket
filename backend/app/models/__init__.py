@@ -1,10 +1,10 @@
 from .epic import Epic
 from .github_integration import GitHubIntegration
 from .milestone import Milestone
-from .project import Project, ProjectMember
-from .task import Task, TaskComment, TaskEstimate, TaskVote, Tag, TaskTag
-from .user import User
 from .notification import Notification
+from .project import Project, ProjectMember
+from .task import Tag, Task, TaskComment, TaskEstimate, TaskTag, TaskVote
+from .user import User
 
 __all__ = [
     "User",
