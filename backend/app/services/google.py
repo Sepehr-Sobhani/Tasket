@@ -1,8 +1,9 @@
 from typing import Any
 
 import httpx
-from app.core.config import settings
 from fastapi import HTTPException
+
+from app.core.config import settings
 
 
 class GoogleService:

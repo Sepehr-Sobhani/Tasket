@@ -1,11 +1,12 @@
 import json
 
 import structlog
-from app.core.database import get_async_session
-from app.core.websocket import manager
 from fastapi import APIRouter, Depends, WebSocket, WebSocketDisconnect
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import Session
+
+from app.core.database import get_async_session
+from app.core.websocket import WebSocketMessage, manager
 
 logger = structlog.get_logger()
 router = APIRouter()

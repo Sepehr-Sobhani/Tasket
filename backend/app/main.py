@@ -1,6 +1,16 @@
 import os
+from contextlib import asynccontextmanager
 
+import structlog
 from dotenv import load_dotenv
+from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
+from fastapi.middleware.trustedhost import TrustedHostMiddleware
+from starlette.middleware.sessions import SessionMiddleware
+
+from app.api.v1.api import api_router
+from app.core.config import settings
+from app.core.oauth import register_oauth_clients
 
 # Force load .env file before anything else
 # Get the directory where main.py is located
@@ -9,17 +19,6 @@ current_dir = os.path.dirname(os.path.abspath(__file__))
 backend_dir = os.path.dirname(current_dir)
 env_path = os.path.join(backend_dir, ".env")
 load_dotenv(dotenv_path=env_path)
-
-from contextlib import asynccontextmanager
-
-import structlog
-from app.api.v1.api import api_router
-from app.core.config import settings
-from app.core.oauth import register_oauth_clients
-from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
-from fastapi.middleware.trustedhost import TrustedHostMiddleware
-from starlette.middleware.sessions import SessionMiddleware
 
 # Register OAuth clients after settings are loaded
 register_oauth_clients()

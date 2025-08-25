@@ -1,12 +1,13 @@
 from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.database import get_async_session
 from app.models.milestone import Milestone
 from app.schemas.milestone import Milestone as MilestoneSchema
 from app.schemas.milestone import MilestoneCreate
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

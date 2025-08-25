@@ -1,13 +1,14 @@
 from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.auth import current_active_user
 from app.core.database import get_async_session
 from app.models.user import User
 from app.schemas.task import Task as TaskSchema
 from app.schemas.task import TaskCreate, TaskUpdate
 from app.services.task import TaskService
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

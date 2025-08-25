@@ -1,11 +1,12 @@
 import structlog
+from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.auth import current_active_user
 from app.core.database import get_async_session
 from app.models.user import User
 from app.schemas.notification import NotificationListResponse, NotificationResponse
 from app.services.notification import NotificationService
-from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 router = APIRouter()

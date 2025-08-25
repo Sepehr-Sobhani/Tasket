@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Any
 
 import structlog
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.milestone import Milestone
 from app.models.project import ProjectMember, ProjectMemberRole
 from app.models.task import Task
 from app.schemas.milestone import MilestoneCreate, MilestoneUpdate
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

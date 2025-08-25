@@ -23,14 +23,6 @@ repos:
       - id: ruff-format
         files: ^backend/.*\.py$
 
-  # Python import sorting
-  - repo: https://github.com/pycqa/isort
-    rev: 5.13.2
-    hooks:
-      - id: isort
-        args: ["--profile", "black"]
-        files: ^backend/.*\.py$
-
   # Python type checking with ty
   - repo: local
     hooks:

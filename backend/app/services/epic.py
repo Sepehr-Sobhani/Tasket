@@ -2,12 +2,13 @@ from datetime import datetime
 from typing import Any
 
 import structlog
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.epic import Epic
 from app.models.project import ProjectMember, ProjectMemberRole
 from app.models.task import Task
 from app.schemas.epic import EpicCreate, EpicUpdate
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

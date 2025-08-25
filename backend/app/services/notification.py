@@ -1,10 +1,11 @@
 from datetime import datetime
 
 import structlog
-from app.core.websocket import manager
-from app.models.notification import Notification
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.websocket import manager
+from app.models.notification import Notification
 
 logger = structlog.get_logger()
 

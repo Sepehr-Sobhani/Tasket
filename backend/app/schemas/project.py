@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from app.models.project import ProjectMemberRole, ProjectVisibility
 from pydantic import BaseModel
+
+from app.models.project import ProjectMemberRole, ProjectVisibility
 
 
 class ProjectBase(BaseModel):

@@ -1,9 +1,10 @@
-from app.core.database import Base
 from fastapi_users.db import SQLAlchemyBaseUserTable
 from passlib.context import CryptContext
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.core.database import Base
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 

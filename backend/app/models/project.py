@@ -1,6 +1,5 @@
 import enum
 
-from app.core.database import Base
 from sqlalchemy import (
     Boolean,
     Column,
@@ -13,6 +12,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+
+from app.core.database import Base
 
 
 class ProjectVisibility(enum.Enum):

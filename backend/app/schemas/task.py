@@ -1,7 +1,8 @@
 from datetime import datetime
 
-from app.models.task import TaskPriority, TaskStatus
 from pydantic import BaseModel, validator
+
+from app.models.task import TaskPriority, TaskStatus
 
 
 class TaskBase(BaseModel):

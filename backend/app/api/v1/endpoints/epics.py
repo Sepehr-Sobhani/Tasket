@@ -1,5 +1,9 @@
 from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.auth import current_active_user
 from app.core.database import get_async_session
 from app.models.epic import Epic
@@ -7,9 +11,6 @@ from app.models.project import ProjectMember
 from app.models.user import User
 from app.schemas.epic import Epic as EpicSchema
 from app.schemas.epic import EpicCreate
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy import select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 

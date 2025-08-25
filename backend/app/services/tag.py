@@ -1,11 +1,12 @@
 from datetime import datetime
 
 import structlog
+from sqlalchemy import func, select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.models.project import ProjectMember
 from app.models.task import Tag, Task, TaskTag
 from app.schemas.tag import TagCreate, TagUpdate
-from sqlalchemy import func, select
-from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = structlog.get_logger()
 

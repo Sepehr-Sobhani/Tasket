@@ -1,3 +1,5 @@
+from fastapi import APIRouter
+
 from app.api.v1.endpoints import (
     auth_fastapi,
     epics,
@@ -8,7 +10,6 @@ from app.api.v1.endpoints import (
     tasks,
     users,
 )
-from fastapi import APIRouter
 
 api_router = APIRouter()
 

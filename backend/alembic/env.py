@@ -1,6 +1,7 @@
 from logging.config import fileConfig
 
 from alembic import context
+from app.core.database import Base
 
 # this is the Alembic Config object, which provides
 # access to the values within the .ini file in use.
@@ -13,7 +14,6 @@ if config.config_file_name is not None:
 
 # add your model's MetaData object here
 # for 'autogenerate' support
-from app.core.database import Base
 
 # Import all models to ensure they are registered with Base.metadata
 target_metadata = Base.metadata
@@ -57,8 +57,9 @@ def run_migrations_online() -> None:
     and associate a connection with the context.
 
     """
-    from app.core.config import settings
     from sqlalchemy import create_engine
+
+    from app.core.config import settings
 
     # Create a synchronous engine for migrations
     database_url = settings.DATABASE_URL

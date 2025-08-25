@@ -1,6 +1,3 @@
-from app.core.config import settings
-from app.core.database import get_async_session
-from app.models.user import User
 from fastapi import Depends, Request
 from fastapi_users import BaseUserManager, FastAPIUsers, IntegerIDMixin
 from fastapi_users.authentication import (
@@ -10,6 +7,10 @@ from fastapi_users.authentication import (
 )
 from fastapi_users.db import SQLAlchemyUserDatabase
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
+from app.core.database import get_async_session
+from app.models.user import User
 
 
 class UserManager(IntegerIDMixin, BaseUserManager[User, int]):

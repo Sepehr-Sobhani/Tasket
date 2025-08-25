@@ -1,15 +1,16 @@
 from datetime import datetime, timedelta
 from typing import Any
 
-from app.core.config import settings
-from app.core.database import get_async_session
-from app.models.user import User
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from jose import JWTError, jwt
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+
+from app.core.config import settings
+from app.core.database import get_async_session
+from app.models.user import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
@@ -61,7 +62,7 @@ async def get_current_user_async(
         if username is None:
             raise credentials_exception
     except JWTError:
-        raise credentials_exception
+        raise credentials_exception from None
 
     stmt = select(User).where(User.username == username)
     result = await session.execute(stmt)
@@ -128,7 +129,7 @@ async def get_current_user_from_token_async(token: str, session: AsyncSession) -
         if username is None:
             raise credentials_exception
     except JWTError:
-        raise credentials_exception
+        raise credentials_exception from None
 
     stmt = select(User).where(User.username == username)
     result = await session.execute(stmt)

@@ -1,6 +1,11 @@
 from datetime import datetime
 from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import RedirectResponse
+from fastapi_users import schemas
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from app.core.auth import (
     auth_backend,
     current_active_user,
@@ -12,10 +17,6 @@ from app.core.database import get_async_session
 from app.core.oauth import oauth
 from app.models.user import OAuthAccount, User
 from app.schemas.user import User as UserSchema
-from fastapi import APIRouter, Depends, HTTPException, Request
-from fastapi.responses import RedirectResponse
-from fastapi_users import schemas
-from sqlalchemy.ext.asyncio import AsyncSession
 
 router = APIRouter()
 
@@ -87,7 +88,7 @@ async def oauth_login(request: Request, provider: str):
     except Exception as e:
         raise HTTPException(
             status_code=500, detail=f"OAuth configuration error: {str(e)}"
-        )
+        ) from e
 
 
 @router.get("/oauth/test")
@@ -138,7 +139,7 @@ async def oauth_callback(
                 if not code:
                     raise HTTPException(
                         status_code=400, detail="No authorization code received"
-                    )
+                    ) from None
 
                 # Use the client's internal method to exchange code for token
                 base_url = str(request.base_url).rstrip("/")
@@ -177,7 +178,7 @@ async def oauth_callback(
                         raise HTTPException(
                             status_code=400,
                             detail=f"Token exchange failed: {token_response['error']}",
-                        )
+                        ) from None
 
                     token = token_response
             else:
@@ -210,7 +211,7 @@ async def oauth_callback(
         except Exception as jwt_error:
             raise HTTPException(
                 status_code=500, detail=f"JWT token creation failed: {str(jwt_error)}"
-            )
+            ) from jwt_error
 
         # Redirect to frontend with token
         frontend_url = settings.FRONTEND_URL or "http://localhost:3000"

@@ -1,6 +1,9 @@
 from datetime import timedelta
 from typing import Any
 
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+
 from app.core.config import settings
 from app.core.database import get_db
 from app.core.security import (
@@ -14,8 +17,6 @@ from app.schemas.user import User as UserSchema
 from app.schemas.user import UserCreate
 from app.services.github import GitHubService
 from app.services.google import GoogleService
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
 
 router = APIRouter()
 
