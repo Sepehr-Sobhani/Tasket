@@ -24,7 +24,7 @@ class MilestoneService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -36,7 +36,7 @@ class MilestoneService:
         stmt = (
             select(Milestone, func.count(Task.id).label("task_count"))
             .join(Task, Milestone.id == Task.milestone_id, isouter=True)
-            .where(Milestone.project_id == project_id, Milestone.is_active == True)
+            .where(Milestone.project_id == project_id, Milestone.is_active)
             .group_by(Milestone.id)
             .order_by(Milestone.due_date)
             .offset(skip)
@@ -65,7 +65,7 @@ class MilestoneService:
             .where(
                 Milestone.id == milestone_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -79,7 +79,7 @@ class MilestoneService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == milestone_data.project_id,
             ProjectMember.user_id == creator_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -113,7 +113,7 @@ class MilestoneService:
             .where(
                 Milestone.id == milestone_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -143,7 +143,7 @@ class MilestoneService:
             .where(
                 Milestone.id == milestone_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -157,7 +157,7 @@ class MilestoneService:
             ProjectMember.project_id == milestone.project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         admin_member = result.scalar_one_or_none()
@@ -192,7 +192,7 @@ class MilestoneService:
             .where(
                 Milestone.id == milestone_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -224,7 +224,7 @@ class MilestoneService:
             .where(
                 Milestone.id == milestone_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -266,7 +266,7 @@ class MilestoneService:
             .where(
                 Milestone.id == milestone_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -308,7 +308,7 @@ class MilestoneService:
             .where(
                 Milestone.id == milestone_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -363,7 +363,7 @@ class MilestoneService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -377,7 +377,7 @@ class MilestoneService:
             select(Milestone)
             .where(
                 Milestone.project_id == project_id,
-                Milestone.is_active == True,
+                Milestone.is_active,
                 Milestone.due_date >= datetime.utcnow(),
                 Milestone.due_date <= cutoff_date,
             )
@@ -396,7 +396,7 @@ class MilestoneService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -409,7 +409,7 @@ class MilestoneService:
             select(Milestone)
             .where(
                 Milestone.project_id == project_id,
-                Milestone.is_active == True,
+                Milestone.is_active,
                 Milestone.due_date < datetime.utcnow(),
             )
             .order_by(Milestone.due_date)
@@ -433,7 +433,7 @@ class MilestoneService:
         stmt = (
             select(Milestone)
             .join(ProjectMember)
-            .where(ProjectMember.user_id == user_id, ProjectMember.is_active == True)
+            .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
         )
 
         # Add text search

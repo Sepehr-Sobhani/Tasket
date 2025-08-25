@@ -24,7 +24,7 @@ class EpicService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -36,7 +36,7 @@ class EpicService:
         stmt = (
             select(Epic, func.count(Task.id).label("task_count"))
             .join(Task, Epic.id == Task.epic_id, isouter=True)
-            .where(Epic.project_id == project_id, Epic.is_active == True)
+            .where(Epic.project_id == project_id, Epic.is_active)
             .group_by(Epic.id)
             .order_by(Epic.created_at.desc())
             .offset(skip)
@@ -63,7 +63,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -75,7 +75,7 @@ class EpicService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == epic_data.project_id,
             ProjectMember.user_id == creator_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -109,7 +109,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -139,7 +139,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -153,7 +153,7 @@ class EpicService:
             ProjectMember.project_id == epic.project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         admin_member = result.scalar_one_or_none()
@@ -188,7 +188,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -220,7 +220,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -259,7 +259,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -298,7 +298,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -350,7 +350,7 @@ class EpicService:
         stmt = (
             select(Epic)
             .join(ProjectMember)
-            .where(ProjectMember.user_id == user_id, ProjectMember.is_active == True)
+            .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
         )
 
         # Add text search
@@ -381,7 +381,7 @@ class EpicService:
             .where(
                 Epic.id == epic_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)

@@ -27,7 +27,7 @@ class TaskService:
             select(Task)
             .join(Task.project)
             .join(ProjectMember)
-            .where(ProjectMember.user_id == user_id, ProjectMember.is_active == True)
+            .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
         )
 
         # Add project filter if specified
@@ -47,7 +47,7 @@ class TaskService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -59,7 +59,7 @@ class TaskService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == task_data.project_id,
             ProjectMember.user_id == creator_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -94,7 +94,7 @@ class TaskService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -125,7 +125,7 @@ class TaskService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -139,7 +139,7 @@ class TaskService:
             ProjectMember.project_id == task.project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         admin_member = result.scalar_one_or_none()
@@ -166,7 +166,7 @@ class TaskService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -179,7 +179,7 @@ class TaskService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == task.project_id,
             ProjectMember.user_id == assignee_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         assignee_member = result.scalar_one_or_none()
@@ -213,7 +213,7 @@ class TaskService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -245,7 +245,7 @@ class TaskService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -281,7 +281,7 @@ class TaskService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -318,7 +318,7 @@ class TaskService:
             select(Task)
             .join(Task.project)
             .join(ProjectMember)
-            .where(ProjectMember.user_id == user_id, ProjectMember.is_active == True)
+            .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
         )
 
         # Add text search
@@ -353,7 +353,7 @@ class TaskService:
                 and_(
                     Task.assignee_id == user_id,
                     ProjectMember.user_id == user_id,
-                    ProjectMember.is_active == True,
+                    ProjectMember.is_active,
                 )
             )
             .offset(skip)
@@ -375,7 +375,7 @@ class TaskService:
                 and_(
                     Task.creator_id == user_id,
                     ProjectMember.user_id == user_id,
-                    ProjectMember.is_active == True,
+                    ProjectMember.is_active,
                 )
             )
             .offset(skip)
@@ -393,7 +393,7 @@ class TaskService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()

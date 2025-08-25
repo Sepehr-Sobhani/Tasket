@@ -26,7 +26,7 @@ async def get_tags_by_project(
     stmt = select(ProjectMember).where(
         ProjectMember.project_id == project_id,
         ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True,
+        ProjectMember.is_active,
     )
     result = await session.execute(stmt)
     project_member = result.scalar_one_or_none()
@@ -54,7 +54,7 @@ async def create_tag(
     stmt = select(ProjectMember).where(
         ProjectMember.project_id == tag_in.project_id,
         ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True,
+        ProjectMember.is_active,
     )
     result = await session.execute(stmt)
     project_member = result.scalar_one_or_none()
@@ -87,7 +87,7 @@ async def update_tag(
         .where(
             Tag.id == tag_id,
             ProjectMember.user_id == current_user.id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
     )
     result = await session.execute(stmt)
@@ -121,7 +121,7 @@ async def delete_tag(
         .where(
             Tag.id == tag_id,
             ProjectMember.user_id == current_user.id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
     )
     result = await session.execute(stmt)

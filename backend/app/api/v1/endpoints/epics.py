@@ -27,9 +27,7 @@ async def get_epics(
         select(Epic)
         .join(Epic.project)
         .join(ProjectMember)
-        .where(
-            ProjectMember.user_id == current_user.id, ProjectMember.is_active == True
-        )
+        .where(ProjectMember.user_id == current_user.id, ProjectMember.is_active)
         .offset(skip)
         .limit(limit)
     )
@@ -50,7 +48,7 @@ async def get_epics_by_project(
     stmt = select(ProjectMember).where(
         ProjectMember.project_id == project_id,
         ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True,
+        ProjectMember.is_active,
     )
     result = await session.execute(stmt)
     project_member = result.scalar_one_or_none()
@@ -60,7 +58,7 @@ async def get_epics_by_project(
             status_code=403, detail="You must be a member of the project to view epics"
         )
 
-    stmt = select(Epic).where(Epic.project_id == project_id, Epic.is_active == True)
+    stmt = select(Epic).where(Epic.project_id == project_id, Epic.is_active)
     result = await session.execute(stmt)
     epics = result.scalars().all()
     return epics
@@ -78,7 +76,7 @@ async def create_epic(
     stmt = select(ProjectMember).where(
         ProjectMember.project_id == epic_in.project_id,
         ProjectMember.user_id == current_user.id,
-        ProjectMember.is_active == True,
+        ProjectMember.is_active,
     )
     result = await session.execute(stmt)
     project_member = result.scalar_one_or_none()
@@ -112,7 +110,7 @@ async def get_epic(
         .where(
             Epic.id == epic_id,
             ProjectMember.user_id == current_user.id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
     )
     result = await session.execute(stmt)

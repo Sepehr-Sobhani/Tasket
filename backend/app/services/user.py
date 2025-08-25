@@ -109,7 +109,7 @@ class UserService:
         stmt = (
             select(ProjectMember.project_id, func.count(Task.id).label("task_count"))
             .join(Task, ProjectMember.project_id == Task.project_id, isouter=True)
-            .where(ProjectMember.user_id == user_id, ProjectMember.is_active == True)
+            .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
             .group_by(ProjectMember.project_id)
             .offset(skip)
             .limit(limit)
@@ -122,7 +122,7 @@ class UserService:
         """Get statistics for a specific user"""
         # Count projects where user is a member
         projects_stmt = select(func.count(ProjectMember.project_id)).where(
-            ProjectMember.user_id == user_id, ProjectMember.is_active == True
+            ProjectMember.user_id == user_id, ProjectMember.is_active
         )
         projects_result = await self.db.execute(projects_stmt)
         total_projects = projects_result.scalar()
@@ -155,7 +155,7 @@ class UserService:
         stmt = (
             select(User)
             .where(
-                User.is_active == True,
+                User.is_active,
                 User.id != current_user_id,  # Exclude current user
                 (
                     User.full_name.ilike(f"%{query}%")

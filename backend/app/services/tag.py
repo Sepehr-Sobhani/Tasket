@@ -22,7 +22,7 @@ class TagService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -35,7 +35,7 @@ class TagService:
             select(Tag, func.count(TaskTag.task_id).label("usage_count"))
             .join(TaskTag, Tag.id == TaskTag.tag_id, isouter=True)
             .join(Task, TaskTag.task_id == Task.id, isouter=True)
-            .where(Tag.project_id == project_id, Tag.is_active == True)
+            .where(Tag.project_id == project_id, Tag.is_active)
             .group_by(Tag.id)
             .order_by(Tag.name)
             .offset(skip)
@@ -62,7 +62,7 @@ class TagService:
             .where(
                 Tag.id == tag_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -74,7 +74,7 @@ class TagService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == tag_data.project_id,
             ProjectMember.user_id == creator_id,
-            ProjectMember.is_active == True,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -86,7 +86,7 @@ class TagService:
         stmt = select(Tag).where(
             Tag.project_id == tag_data.project_id,
             Tag.name == tag_data.name,
-            Tag.is_active == True,
+            Tag.is_active,
         )
         result = await self.db.execute(stmt)
         existing_tag = result.scalar_one_or_none()
@@ -120,7 +120,7 @@ class TagService:
             .where(
                 Tag.id == tag_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -135,7 +135,7 @@ class TagService:
                 Tag.project_id == tag.project_id,
                 Tag.name == tag_data.name,
                 Tag.id != tag_id,
-                Tag.is_active == True,
+                Tag.is_active,
             )
             result = await self.db.execute(stmt)
             existing_tag = result.scalar_one_or_none()
@@ -164,7 +164,7 @@ class TagService:
             .where(
                 Tag.id == tag_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -200,7 +200,7 @@ class TagService:
             .where(
                 Tag.id == tag_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -252,7 +252,7 @@ class TagService:
                 TaskTag.task_id == task_id,
                 TaskTag.tag_id == tag_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -268,7 +268,7 @@ class TagService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -292,7 +292,7 @@ class TagService:
             .where(
                 Task.id == task_id,
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
+                ProjectMember.is_active,
             )
         )
         result = await self.db.execute(stmt)
@@ -303,9 +303,7 @@ class TagService:
 
         # Get tags for the task
         stmt = (
-            select(Tag)
-            .join(TaskTag)
-            .where(TaskTag.task_id == task_id, Tag.is_active == True)
+            select(Tag).join(TaskTag).where(TaskTag.task_id == task_id, Tag.is_active)
         )
         result = await self.db.execute(stmt)
         return result.scalars().all()
@@ -325,8 +323,8 @@ class TagService:
             .join(ProjectMember)
             .where(
                 ProjectMember.user_id == user_id,
-                ProjectMember.is_active == True,
-                Tag.is_active == True,
+                ProjectMember.is_active,
+                Tag.is_active,
             )
         )
 
