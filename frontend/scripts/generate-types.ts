@@ -35,7 +35,7 @@ async function generateTypes() {
 
     // Add a header comment to the generated file
     const headerComment = `// This file is auto-generated from OpenAPI schema
-// Do not edit manually - regenerate using: npm run generate-types
+// Do not edit manually - regenerate using: pnpm run generate-types
 // Generated from: ${OPENAPI_URL}
 
 `;
