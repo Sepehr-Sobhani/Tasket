@@ -9,22 +9,9 @@ class Token(BaseModel):
     username: str
 
 
-class TokenData(BaseModel):
-    username: str | None = None
-    user_id: int | None = None
-
-
 class LoginRequest(BaseModel):
-    username: str
+    email: str
     password: str
 
 
-class GitHubAuthRequest(BaseModel):
-    code: str
-    state: str | None = None
-
-
-class GoogleAuthRequest(BaseModel):
-    code: str
-    state: str | None = None
-    redirect_uri: str
+# OAuth schemas removed - now handled by frontend

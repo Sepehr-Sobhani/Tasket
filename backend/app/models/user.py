@@ -1,18 +1,19 @@
 from fastapi_users.db import SQLAlchemyBaseUserTable
 from passlib.context import CryptContext
-from sqlalchemy import Boolean, Column, DateTime, ForeignKey, Integer, String, Text
+from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from ulid import ULID
 
 from app.core.database import Base
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-class User(SQLAlchemyBaseUserTable[int], Base):
+class User(SQLAlchemyBaseUserTable[str], Base):
     __tablename__ = "users"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(26), primary_key=True, default=lambda: str(ULID()), index=True)
     email = Column(String(255), unique=True, index=True, nullable=False)
     username = Column(String(100), unique=True, index=True, nullable=False)
     full_name = Column(String(255), nullable=True)
@@ -35,18 +36,6 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 
     # Relationships
     projects = relationship("ProjectMember", back_populates="user")
-    created_tasks = relationship(
-        "Task", back_populates="creator", foreign_keys="Task.creator_id"
-    )
-    assigned_tasks = relationship(
-        "Task", back_populates="assignee", foreign_keys="Task.assignee_id"
-    )
-    task_comments = relationship("TaskComment", back_populates="user")
-    task_estimates = relationship("TaskEstimate", back_populates="user")
-    task_votes = relationship("TaskVote", back_populates="user")
-    notifications = relationship(
-        "Notification", back_populates="user", cascade="all, delete-orphan"
-    )
 
     def verify_password(self, plain_password: str) -> bool:
         """Verify a plain password against the hashed password"""
@@ -65,10 +54,10 @@ class User(SQLAlchemyBaseUserTable[int], Base):
     @property
     def is_authenticated(self) -> bool:
         """Check if user is authenticated"""
-        return self.is_active and (self.hashed_password or self.github_id)
+        return self.is_active and (self.hashed_password or bool(self.oauth_accounts))
 
     def can_access_project(
-        self, project_id: int, required_role: str = "member"
+        self, project_id: str, required_role: str = "member"
     ) -> bool:
         """Check if user can access a project with the required role"""
         if self.is_superuser:
@@ -88,16 +77,13 @@ class User(SQLAlchemyBaseUserTable[int], Base):
 class OAuthAccount(Base):
     __tablename__ = "oauth_accounts"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(26), primary_key=True, default=lambda: str(ULID()), index=True)
     oauth_name = Column(String(100), nullable=False)
-    access_token = Column(String(500), nullable=False)
-    expires_at = Column(DateTime(timezone=True), nullable=True)
-    refresh_token = Column(String(500), nullable=True)
     account_id = Column(String(255), nullable=False)
     account_email = Column(String(255), nullable=True)
 
     # Foreign key to user
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    user_id = Column(String(26), ForeignKey("users.id"), nullable=False)
     user = relationship("User", back_populates="oauth_accounts")
 
     def __repr__(self):

@@ -2,7 +2,7 @@ from datetime import datetime
 
 from pydantic import BaseModel
 
-from app.models.project import ProjectMemberRole, ProjectVisibility
+from app.models.project import ProjectVisibility
 
 
 class ProjectBase(BaseModel):
@@ -23,39 +23,18 @@ class ProjectUpdate(BaseModel):
 
 
 class Project(ProjectBase):
-    id: int
+    id: str
     is_active: bool = True
+    is_default: bool = False
     github_repo_id: str | None = None
     github_repo_name: str | None = None
     github_repo_owner: str | None = None
     created_at: datetime
     updated_at: datetime | None = None
     member_count: int = 0
-    task_count: int = 0
 
     class Config:
         from_attributes = True
 
 
-class ProjectMemberBase(BaseModel):
-    role: ProjectMemberRole = ProjectMemberRole.MEMBER
-
-
-class ProjectMemberCreate(ProjectMemberBase):
-    user_id: int
-
-
-class ProjectMember(ProjectMemberBase):
-    id: int
-    project_id: int
-    user_id: int
-    is_active: bool = True
-    joined_at: datetime
-    updated_at: datetime | None = None
-
-    class Config:
-        from_attributes = True
-
-
-class ProjectWithMembers(Project):
-    members: list[ProjectMember] = []
+# ProjectMember schemas removed - using models directly instead of schemas

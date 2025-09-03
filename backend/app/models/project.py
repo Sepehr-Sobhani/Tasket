@@ -6,12 +6,12 @@ from sqlalchemy import (
     DateTime,
     Enum,
     ForeignKey,
-    Integer,
     String,
     Text,
 )
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
+from ulid import ULID
 
 from app.core.database import Base
 
@@ -29,11 +29,14 @@ class ProjectMemberRole(enum.Enum):
 class Project(Base):
     __tablename__ = "projects"
 
-    id = Column(Integer, primary_key=True, index=True)
+    id = Column(String(26), primary_key=True, default=lambda: str(ULID()), index=True)
     name = Column(String(255), nullable=False)
     description = Column(Text, nullable=True)
     visibility = Column(Enum(ProjectVisibility), default=ProjectVisibility.PRIVATE)
     is_active = Column(Boolean, default=True)
+    is_default = Column(
+        Boolean, default=False
+    )  # Only one project per user can be default
 
     # GitHub integration
     github_repo_id = Column(String(100), nullable=True)
@@ -49,12 +52,6 @@ class Project(Base):
     members = relationship(
         "ProjectMember", back_populates="project", cascade="all, delete-orphan"
     )
-    tasks = relationship("Task", back_populates="project", cascade="all, delete-orphan")
-    epics = relationship("Epic", back_populates="project", cascade="all, delete-orphan")
-    milestones = relationship(
-        "Milestone", back_populates="project", cascade="all, delete-orphan"
-    )
-    tags = relationship("Tag", back_populates="project", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<Project(id={self.id}, name='{self.name}')>"
@@ -63,9 +60,9 @@ class Project(Base):
 class ProjectMember(Base):
     __tablename__ = "project_members"
 
-    id = Column(Integer, primary_key=True, index=True)
-    project_id = Column(Integer, ForeignKey("projects.id"), nullable=False)
-    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    id = Column(String(26), primary_key=True, default=lambda: str(ULID()), index=True)
+    project_id = Column(String(26), ForeignKey("projects.id"), nullable=False)
+    user_id = Column(String(26), ForeignKey("users.id"), nullable=False)
     role = Column(Enum(ProjectMemberRole), default=ProjectMemberRole.MEMBER)
     is_active = Column(Boolean, default=True)
 
