@@ -135,43 +135,6 @@ class WebSocketMessage:
     """Helper class for creating WebSocket messages"""
 
     @staticmethod
-    def task_created(task_data: dict, project_id: int):
-        return {
-            "type": "task_created",
-            "project_id": project_id,
-            "data": task_data,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-
-    @staticmethod
-    def task_updated(task_data: dict, project_id: int):
-        return {
-            "type": "task_updated",
-            "project_id": project_id,
-            "data": task_data,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-
-    @staticmethod
-    def task_deleted(task_id: int, project_id: int):
-        return {
-            "type": "task_deleted",
-            "project_id": project_id,
-            "task_id": task_id,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-
-    @staticmethod
-    def task_moved(task_id: int, new_status: str, project_id: int):
-        return {
-            "type": "task_moved",
-            "project_id": project_id,
-            "task_id": task_id,
-            "new_status": new_status,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-
-    @staticmethod
     def comment_added(comment_data: dict, project_id: int):
         return {
             "type": "comment_added",
@@ -213,13 +176,5 @@ class WebSocketMessage:
             "type": "estimation_vote",
             "project_id": project_id,
             "data": vote_data,
-            "timestamp": datetime.utcnow().isoformat(),
-        }
-
-    @staticmethod
-    def notification(notification_data: dict):
-        return {
-            "type": "notification",
-            "data": notification_data,
             "timestamp": datetime.utcnow().isoformat(),
         }

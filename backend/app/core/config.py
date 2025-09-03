@@ -20,28 +20,8 @@ class Settings(BaseSettings):
     # CORS
     ALLOWED_HOSTS: list[str] = ["http://localhost:3000", "http://127.0.0.1:3000"]
 
-    # Frontend URL for OAuth redirects
+    # Frontend URL
     FRONTEND_URL: str = "http://localhost:3000"
-
-    # GitHub Integration
-    GITHUB_CLIENT_ID: str | None = None
-    GITHUB_CLIENT_SECRET: str | None = None
-
-    # Google OAuth Integration
-    GOOGLE_CLIENT_ID: str | None = None
-    GOOGLE_CLIENT_SECRET: str | None = None
-
-    # Email Configuration
-    SMTP_TLS: bool = True
-    SMTP_PORT: int | None = None
-    SMTP_HOST: str | None = None
-    SMTP_USER: str | None = None
-    SMTP_PASSWORD: str | None = None
-    EMAILS_FROM_EMAIL: str | None = None
-    EMAILS_FROM_NAME: str | None = None
-
-    # Redis for WebSockets and caching
-    REDIS_URL: str = "redis://localhost:6379"
 
     # Environment
     ENVIRONMENT: str = "development"
@@ -66,6 +46,7 @@ class Settings(BaseSettings):
     class Config:
         env_file = ".env"
         case_sensitive = True
+        extra = "ignore"  # Ignore extra environment variables
 
 
 # Create settings instance

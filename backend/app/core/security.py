@@ -1,22 +1,23 @@
 from datetime import datetime, timedelta
-from typing import Any
 
+import jwt
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
-from jose import JWTError, jwt
+from jwt.exceptions import InvalidTokenError
 from passlib.context import CryptContext
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import Session
 
 from app.core.config import settings
-from app.core.database import get_async_session
+from app.core.database import get_async_session, get_db
 from app.models.user import User
 
 pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
 security = HTTPBearer()
 
 
-def create_access_token(subject: str | Any, expires_delta: timedelta = None) -> str:
+def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
     """Create JWT access token"""
     if expires_delta:
         expire = datetime.utcnow() + expires_delta
@@ -24,7 +25,9 @@ def create_access_token(subject: str | Any, expires_delta: timedelta = None) -> 
         expire = datetime.utcnow() + timedelta(
             minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES
         )
-    to_encode = {"exp": expire, "sub": str(subject)}
+
+    to_encode = data.copy()
+    to_encode.update({"exp": expire})
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
@@ -41,11 +44,40 @@ def get_password_hash(password: str) -> str:
     return pwd_context.hash(password)
 
 
-async def get_current_user_async(
+async def authenticate_user(
+    session: AsyncSession, email: str, password: str
+) -> User | None:
+    """Authenticate a user with email and password"""
+    result = await session.execute(select(User).where(User.email == email))
+    user = result.scalar_one_or_none()
+
+    if not user or not user.hashed_password:
+        return None
+
+    if not verify_password(password, user.hashed_password):
+        return None
+
+    return user
+
+
+def authenticate_user_sync(session: Session, email: str, password: str) -> User | None:
+    """Synchronous version of authenticate_user"""
+    user = session.query(User).filter(User.email == email).first()
+
+    if not user or not user.hashed_password:
+        return None
+
+    if not verify_password(password, user.hashed_password):
+        return None
+
+    return user
+
+
+async def get_current_user(
     session: AsyncSession = Depends(get_async_session),
     credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> User:
-    """Get current authenticated user from JWT token (async)"""
+    """Get current user from JWT token"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -58,63 +90,32 @@ async def get_current_user_async(
             settings.SECRET_KEY,
             algorithms=[settings.ALGORITHM],
         )
-        username: str = payload.get("sub")
-        if username is None:
+        user_id: str = payload.get("sub")
+        if user_id is None:
             raise credentials_exception
-    except JWTError:
+    except InvalidTokenError:
         raise credentials_exception from None
 
-    stmt = select(User).where(User.username == username)
-    result = await session.execute(stmt)
+    result = await session.execute(select(User).where(User.id == user_id))
     user = result.scalar_one_or_none()
+
     if user is None:
         raise credentials_exception
+
+    # Ensure user is active
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN, detail="User account is inactive"
+        )
+
     return user
 
 
-async def get_current_active_user_async(
-    current_user: User = Depends(get_current_user_async),
+def get_current_user_sync(
+    session: Session = Depends(get_db),
+    credentials: HTTPAuthorizationCredentials = Depends(security),
 ) -> User:
-    """Get current active user (async)"""
-    if not current_user.is_active:
-        raise HTTPException(status_code=400, detail="Inactive user")
-    return current_user
-
-
-async def get_current_superuser_async(
-    current_user: User = Depends(get_current_user_async),
-) -> User:
-    """Get current superuser (async)"""
-    if not current_user.is_superuser:
-        raise HTTPException(
-            status_code=400, detail="The user doesn't have enough privileges"
-        )
-    return current_user
-
-
-def check_user_permission(
-    user: User, project_id: int, required_role: str = "member"
-) -> bool:
-    """Check if user has permission to access a project"""
-    return user.can_access_project(project_id, required_role)
-
-
-def require_project_permission(required_role: str = "member"):
-    """Decorator to require project permission"""
-
-    def decorator(func):
-        def wrapper(*args, **kwargs):
-            # This would be implemented in the actual route handlers
-            # where we have access to the project_id and current_user
-            pass
-
-        return wrapper
-
-    return decorator
-
-
-async def get_current_user_from_token_async(token: str, session: AsyncSession) -> User:
-    """Get current user from JWT token string (async)"""
+    """Synchronous version of get_current_user"""
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
@@ -123,17 +124,37 @@ async def get_current_user_from_token_async(token: str, session: AsyncSession) -
 
     try:
         payload = jwt.decode(
-            token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM]
+            credentials.credentials,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
         )
-        username: str = payload.get("sub")
-        if username is None:
+        email: str = payload.get("sub")
+        if email is None:
             raise credentials_exception
-    except JWTError:
+    except InvalidTokenError:
         raise credentials_exception from None
 
-    stmt = select(User).where(User.username == username)
-    result = await session.execute(stmt)
-    user = result.scalar_one_or_none()
+    user = session.query(User).filter(User.email == email).first()
+
     if user is None:
         raise credentials_exception
+
     return user
+
+
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    """Get current active user"""
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+def get_current_active_user_sync(
+    current_user: User = Depends(get_current_user_sync),
+) -> User:
+    """Synchronous version of get_current_active_user"""
+    if not current_user.is_active:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
