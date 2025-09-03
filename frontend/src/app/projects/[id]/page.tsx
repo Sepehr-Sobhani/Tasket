@@ -1,25 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loading } from "@/components/ui/loading";
 import { AppLayout } from "@/components/layout/AppLayout";
-import { ArrowLeft } from "lucide-react";
-import { useProject } from "@/hooks/use-project";
-import { api } from "@/lib/api-client";
-import { components } from "@/types/api-common";
 
-// Use the auto-generated types from OpenAPI
-type User = components["schemas"]["User"];
+import { useProject } from "@/hooks/use-project";
 
 export default function ProjectDetailPage() {
   const { user, logout, isLoading } = useAuth();
@@ -115,9 +104,7 @@ export default function ProjectDetailPage() {
                 <h3 className="text-sm font-medium text-primary">
                   Create Task
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  Add new task
-                </p>
+                <p className="text-xs text-muted-foreground">Add new task</p>
               </CardContent>
             </Card>
 
@@ -127,9 +114,7 @@ export default function ProjectDetailPage() {
                 <h3 className="text-sm font-medium text-primary">
                   Invite Team
                 </h3>
-                <p className="text-xs text-muted-foreground">
-                  Add members
-                </p>
+                <p className="text-xs text-muted-foreground">Add members</p>
               </CardContent>
             </Card>
 
@@ -148,9 +133,7 @@ export default function ProjectDetailPage() {
             <Card className="border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all duration-200 hover:shadow-md cursor-pointer">
               <CardContent className="p-4 text-center">
                 <div className="text-2xl mb-2">⚙️</div>
-                <h3 className="text-sm font-medium text-primary">
-                  Settings
-                </h3>
+                <h3 className="text-sm font-medium text-primary">Settings</h3>
                 <p className="text-xs text-muted-foreground">
                   Configure project
                 </p>
@@ -168,9 +151,7 @@ export default function ProjectDetailPage() {
             <CardContent className="p-6">
               <div className="space-y-4">
                 <div>
-                  <h3 className="font-medium text-primary">
-                    Description
-                  </h3>
+                  <h3 className="font-medium text-primary">Description</h3>
                   <p className="text-sm text-muted-foreground">
                     {project.description || "No description provided"}
                   </p>
