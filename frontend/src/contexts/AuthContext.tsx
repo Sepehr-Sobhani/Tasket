@@ -34,42 +34,76 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // User is authenticated with NextAuth, get backend user data
       fetchBackendUser(session.user.id);
     } else {
-      // User is not authenticated
+      // User is not authenticated - clear any existing data
       setUser(null);
       setToken(null);
+      // Clear any stale tokens from localStorage
+      if (typeof window !== "undefined") {
+        localStorage.removeItem("access_token");
+        localStorage.removeItem("nextauth_session_token");
+      }
       setIsLoading(false);
     }
   }, [session, status]);
 
   const fetchBackendUser = async (backendUserId: string) => {
     try {
-      // For NextAuth integration, we'll create a simple user object
-      // In a real implementation, you might want to fetch from your backend
-      const userData: User = {
-        id: backendUserId,
-        username:
-          session?.user?.name || session?.user?.email?.split("@")[0] || "user",
-        email: session?.user?.email || "",
-        full_name: session?.user?.name || undefined,
-        avatar_url: session?.user?.image || undefined,
-        bio: undefined,
-        github_id: undefined,
-        github_username: undefined,
-        role: "member",
-        is_active: true,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString(),
-      };
+      // Store the backend user ID for token exchange
+      localStorage.setItem("nextauth_session_token", backendUserId);
 
-      setUser(userData);
-      setToken("nextauth-session");
+      // Get API URL from config
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (!apiUrl) {
+        // Fallback to creating user without backend token exchange
+        createUserFromSession(backendUserId);
+        return;
+      }
+
+      // Exchange NextAuth session for JWT token
+      const response = await fetch(`${apiUrl}/api/v1/auth/exchange-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ user_id: backendUserId }),
+      });
+
+      if (response.ok) {
+        const tokenData = await response.json();
+        localStorage.setItem("access_token", tokenData.access_token);
+        setToken(tokenData.access_token);
+      } else {
+        setToken("nextauth-session");
+      }
+
+      // Create user object from session data
+      createUserFromSession(backendUserId);
     } catch (error) {
-      console.error("Error setting user data:", error);
-      setUser(null);
-      setToken(null);
+      // Still create user from session even if backend is unavailable
+      createUserFromSession(backendUserId);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const createUserFromSession = (backendUserId: string) => {
+    const userData: User = {
+      id: backendUserId,
+      username:
+        session?.user?.name || session?.user?.email?.split("@")[0] || "user",
+      email: session?.user?.email || "",
+      full_name: session?.user?.name || undefined,
+      avatar_url: session?.user?.image || undefined,
+      bio: undefined,
+      github_id: undefined,
+      github_username: undefined,
+      role: "member",
+      is_active: true,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+
+    setUser(userData);
   };
 
   const login = async (username: string, password: string) => {
@@ -103,6 +137,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const logout = async () => {
+    // Clear all tokens from localStorage
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("nextauth_session_token");
+    }
+
     await signOut({ callbackUrl: "/" });
     setUser(null);
     setToken(null);

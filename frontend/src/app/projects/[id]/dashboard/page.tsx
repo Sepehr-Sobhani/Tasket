@@ -22,7 +22,6 @@ export default function ProjectDashboardPage() {
   useEffect(() => {
     const token = searchParams.get("token");
     if (token) {
-      console.log("Token found in URL:", token); // Debug log
       // Store the token and refresh user data
       localStorage.setItem("auth_token", token);
       refreshUser(token);

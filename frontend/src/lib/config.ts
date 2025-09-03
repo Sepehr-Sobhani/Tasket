@@ -5,7 +5,6 @@ export const config = {
   // API Configuration
   api: {
     baseUrl: getApiBaseUrl(),
-    wsUrl: getWsBaseUrl(),
   },
 
   // App Configuration
@@ -34,15 +33,6 @@ function getApiBaseUrl(): string {
   }
 
   return apiUrl;
-}
-
-function getWsBaseUrl(): string {
-  const apiUrl = getApiBaseUrl();
-  // Convert HTTP to WebSocket URL
-  if (apiUrl.startsWith("https://")) {
-    return apiUrl.replace("https://", "wss://");
-  }
-  return apiUrl.replace("http://", "ws://");
 }
 
 export type Config = typeof config;

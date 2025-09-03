@@ -5,7 +5,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
     expires_in: int
-    user_id: int
+    user_id: str
     username: str
 
 

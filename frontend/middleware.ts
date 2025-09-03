@@ -9,17 +9,13 @@ export default withAuth(
       authorized: ({ token, req }) => {
         const { pathname } = req.nextUrl;
 
-        // Allow access to public routes
+        // Allow access to public routes only
         if (pathname === "/" || pathname.startsWith("/auth/")) {
           return true;
         }
 
-        // Require authentication for protected routes
-        if (pathname.startsWith("/projects")) {
-          return !!token;
-        }
-
-        return true;
+        // Require authentication for all other routes
+        return !!token;
       },
     },
   }

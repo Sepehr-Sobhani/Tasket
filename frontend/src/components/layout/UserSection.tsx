@@ -41,9 +41,7 @@ export function UserSection({ user, isCollapsed, onLogout }: UserSectionProps) {
                 <p className="text-xs font-medium">
                   {user?.full_name || user?.username}
                 </p>
-                <p className="text-xs text-muted-foreground">
-                  {user?.email}
-                </p>
+                <p className="text-xs text-muted-foreground">{user?.email}</p>
               </div>
             )}
           </Button>
@@ -63,14 +61,6 @@ export function UserSection({ user, isCollapsed, onLogout }: UserSectionProps) {
               </p>
             </div>
           </DropdownMenuLabel>
-          <DropdownMenuSeparator className="my-1" />
-          <DropdownMenuItem
-            onClick={() => (window.location.href = "/notifications")}
-            className="text-foreground hover:text-primary hover:bg-primary/10 rounded-md p-2 cursor-pointer transition-colors"
-          >
-            <Bell className="mr-2 h-4 w-4" />
-            <span>Notifications</span>
-          </DropdownMenuItem>
           <DropdownMenuSeparator className="my-1" />
           <DropdownMenuItem
             onClick={onLogout}

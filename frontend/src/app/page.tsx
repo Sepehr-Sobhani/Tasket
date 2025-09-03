@@ -40,7 +40,7 @@ export default function HomePage() {
                 variant="outline"
                 size="lg"
                 className="h-14 px-8 text-base font-bold flex-1 text-primary transition-all duration-200"
-                onClick={() => signIn("github", { callbackUrl: "/projects" })}
+                onClick={() => signIn("github", { callbackUrl: "/dashboard" })}
               >
                 <Github className="mr-3 h-5 w-5" />
                 GitHub
@@ -49,7 +49,7 @@ export default function HomePage() {
                 variant="outline"
                 size="lg"
                 className="h-14 px-8 text-base font-bold flex-1 text-primary transition-all duration-200"
-                onClick={() => signIn("google", { callbackUrl: "/projects" })}
+                onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
               >
                 <Mail className="mr-3 h-5 w-5" />
                 Google

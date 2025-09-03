@@ -11,22 +11,17 @@ export function useCreateProject() {
       visibility: string;
     }) => api.projects.create(data),
     onSuccess: (newProject) => {
-      console.log("Project created, updating cache:", newProject);
-
       // Optimistically update the projects cache
       queryClient.setQueryData(
         ["projects"],
         (old: { projects: any[] } | undefined) => {
-          console.log("Current cache data:", old);
           if (!old?.projects) {
-            console.log("No existing cache, creating new structure");
             return { projects: [newProject] };
           }
           const updated = {
             ...old,
             projects: [newProject, ...old.projects],
           };
-          console.log("Updated cache:", updated);
           return updated;
         }
       );
@@ -36,8 +31,6 @@ export function useCreateProject() {
 
       // Invalidate dashboard stats
       queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
-
-      console.log("Cache updated and queries invalidated");
     },
   });
 }

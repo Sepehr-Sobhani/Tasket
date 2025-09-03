@@ -150,6 +150,43 @@ async def register(
     return user
 
 
+@router.post("/exchange-token", response_model=Token)
+async def exchange_oauth_token(
+    user_data: dict, session: AsyncSession = Depends(get_async_session)
+):
+    """Exchange OAuth user data for JWT token"""
+    user_id = user_data.get("user_id")
+    if not user_id:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Missing user_id in request",
+        )
+
+    # Verify user exists
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found",
+        )
+
+    # Create JWT token
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
+    )
+
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
+        "user_id": user.id,
+        "username": user.username,
+    }
+
+
 @router.get("/me", response_model=UserSchema)
 async def get_current_user(
     current_user: User = Depends(get_current_active_user),

@@ -16,21 +16,6 @@ export function SidebarNavigation({ isCollapsed }: SidebarNavigationProps) {
       href: "/dashboard",
       icon: LayoutDashboard,
     },
-    {
-      name: "Epics",
-      href: "/epics",
-      icon: Target,
-    },
-    {
-      name: "Tasks",
-      href: "/tasks",
-      icon: CheckSquare,
-    },
-    {
-      name: "Tags",
-      href: "/tags",
-      icon: Tags,
-    },
   ];
 
   return (

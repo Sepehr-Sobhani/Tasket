@@ -28,7 +28,7 @@ async def get_users(
 async def get_user(
     *,
     session: AsyncSession = Depends(get_async_session),
-    user_id: int,
+    user_id: str,
 ) -> Any:
     """Get user by ID"""
     stmt = select(User).where(User.id == user_id)

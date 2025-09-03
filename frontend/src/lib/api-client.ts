@@ -22,22 +22,55 @@ export function getAuthHeaders(token?: string): Record<string, string> {
 // For NextAuth integration, we'll need to get the session token
 export async function getNextAuthHeaders(): Promise<Record<string, string>> {
   try {
-    // This will be used when we have NextAuth session
-    // For now, we'll use the traditional token approach
-    const token =
+    // First try to get JWT token from localStorage
+    const jwtToken =
       typeof window !== "undefined"
         ? localStorage.getItem("access_token")
         : null;
 
-    if (!token) {
-      return {};
+    if (jwtToken) {
+      return {
+        Authorization: `Bearer ${jwtToken}`,
+      };
     }
 
-    return {
-      Authorization: `Bearer ${token}`,
-    };
+    // If no JWT token, try to exchange NextAuth session for JWT
+    if (typeof window !== "undefined") {
+      const nextAuthToken = localStorage.getItem("nextauth_session_token");
+      if (nextAuthToken) {
+        try {
+          const response = await fetch(
+            `${config.api.baseUrl}/api/v1/auth/exchange-token`,
+            {
+              method: "POST",
+              headers: {
+                "Content-Type": "application/json",
+              },
+              body: JSON.stringify({ user_id: nextAuthToken }),
+            }
+          );
+
+          if (response.ok) {
+            const tokenData = await response.json();
+            localStorage.setItem("access_token", tokenData.access_token);
+            return {
+              Authorization: `Bearer ${tokenData.access_token}`,
+            };
+          } else {
+            // If token exchange fails, clear the stored tokens
+            localStorage.removeItem("nextauth_session_token");
+            localStorage.removeItem("access_token");
+          }
+        } catch (error) {
+          // Clear tokens on error
+          localStorage.removeItem("nextauth_session_token");
+          localStorage.removeItem("access_token");
+        }
+      }
+    }
+
+    return {};
   } catch (error) {
-    console.error("Error getting auth headers:", error);
     return {};
   }
 }
@@ -210,6 +243,28 @@ export const api = {
     },
   },
 };
+
+// Helper function to handle 401 errors and refresh tokens
+export async function handleAuthError(response: Response): Promise<boolean> {
+  if (response.status === 401) {
+    // Clear invalid tokens
+    if (typeof window !== "undefined") {
+      localStorage.removeItem("access_token");
+      localStorage.removeItem("nextauth_session_token");
+    }
+
+    // Redirect to login if we're not already there
+    if (
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/auth")
+    ) {
+      window.location.href = "/";
+    }
+
+    return true; // Indicates we handled the error
+  }
+  return false; // Error not handled
+}
 
 // Export the client for direct use if needed
 export { client };
