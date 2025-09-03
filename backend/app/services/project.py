@@ -6,7 +6,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.project import Project, ProjectMember, ProjectMemberRole
-from app.models.task import Task
 from app.schemas.dashboard import DashboardStats
 from app.schemas.project import ProjectCreate, ProjectUpdate
 
@@ -18,17 +17,15 @@ class ProjectService:
         self.db = db
 
     async def get_user_projects(
-        self, user_id: int, skip: int = 0, limit: int = 100
+        self, user_id: str, skip: int = 0, limit: int = 100
     ) -> list[dict[str, Any]]:
-        """Get all projects for a specific user with member and task counts"""
+        """Get all projects for a specific user with member counts"""
         stmt = (
             select(
                 Project,
                 func.count(ProjectMember.id).label("member_count"),
-                func.count(Task.id).label("task_count"),
             )
             .join(ProjectMember, Project.id == ProjectMember.project_id, isouter=True)
-            .join(Task, Project.id == Task.project_id, isouter=True)
             .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
             .group_by(Project.id)
             .offset(skip)
@@ -53,13 +50,12 @@ class ProjectService:
                 "created_at": row.Project.created_at,
                 "updated_at": row.Project.updated_at,
                 "member_count": row.member_count,
-                "task_count": row.task_count,
             }
             projects.append(project_dict)
 
         return projects
 
-    async def get_dashboard_stats(self, user_id: int) -> DashboardStats:
+    async def get_dashboard_stats(self, user_id: str) -> DashboardStats:
         """Get dashboard statistics for a specific user"""
         # Get all projects where user is a member
         user_projects_stmt = (
@@ -74,7 +70,6 @@ class ProjectService:
             return DashboardStats(
                 total_projects=0,
                 unique_team_members=0,
-                total_tasks=0,
                 active_projects=0,
             )
 
@@ -88,29 +83,20 @@ class ProjectService:
         unique_members_result = await self.db.execute(unique_members_stmt)
         unique_team_members = unique_members_result.scalar()
 
-        # Count total tasks across all user's projects
-        total_tasks_stmt = select(func.count(Task.id)).where(
-            Task.project_id.in_(user_project_ids)
-        )
-        total_tasks_result = await self.db.execute(total_tasks_stmt)
-        total_tasks = total_tasks_result.scalar()
+        # Count total projects
+        total_projects = len(user_project_ids)
 
-        # Count active projects (projects with at least one task)
-        active_projects_stmt = select(func.count(func.distinct(Task.project_id))).where(
-            Task.project_id.in_(user_project_ids)
-        )
-        active_projects_result = await self.db.execute(active_projects_stmt)
-        active_projects = active_projects_result.scalar()
+        # Count active projects (all projects are considered active for now)
+        active_projects = total_projects
 
         return DashboardStats(
-            total_projects=len(user_project_ids),
+            total_projects=total_projects,
             unique_team_members=unique_team_members,
-            total_tasks=total_tasks,
             active_projects=active_projects,
         )
 
     async def create_project(
-        self, project_data: ProjectCreate, creator_id: int
+        self, project_data: ProjectCreate, creator_id: str
     ) -> Project:
         project = Project(**project_data.model_dump())
 
@@ -133,7 +119,7 @@ class ProjectService:
         return project
 
     async def update_project(
-        self, project_id: int, project_data: ProjectUpdate, user_id: int
+        self, project_id: str, project_data: ProjectUpdate, user_id: str
     ) -> Project | None:
         """Update a project if user has permission"""
         # Check if user is project admin
@@ -169,8 +155,8 @@ class ProjectService:
         logger.info("Project updated", project_id=project_id, user_id=user_id)
         return project
 
-    async def delete_project(self, project_id: int, user_id: int) -> bool:
-        """Delete a project if user is admin"""
+    async def delete_project(self, project_id: str, user_id: str) -> bool:
+        """Delete a project if user has permission"""
         # Check if user is project admin
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
@@ -192,121 +178,101 @@ class ProjectService:
         if not project:
             return False
 
-        # Soft delete project
-        project.is_active = False
-        project.updated_at = datetime.utcnow()
-
-        # Deactivate all project members
-        stmt = select(ProjectMember).where(ProjectMember.project_id == project_id)
-        result = await self.db.execute(stmt)
-        members = result.scalars().all()
-
-        for member in members:
-            member.is_active = False
-
+        # Delete project (cascade will handle project members)
+        await self.db.delete(project)
         await self.db.commit()
 
         logger.info("Project deleted", project_id=project_id, user_id=user_id)
         return True
 
     async def add_project_member(
-        self, project_id: int, user_id: int, role: ProjectMemberRole, added_by_id: int
-    ) -> ProjectMember | None:
-        """Add a member to a project"""
-        # Check if user adding member has permission
-        stmt = select(ProjectMember).where(
-            ProjectMember.project_id == project_id,
-            ProjectMember.user_id == added_by_id,
-            ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active,
-        )
-        result = await self.db.execute(stmt)
-        admin_member = result.scalar_one_or_none()
-
-        if not admin_member:
-            return None
-
-        # Check if user is already a member
-        stmt = select(ProjectMember).where(
-            ProjectMember.project_id == project_id, ProjectMember.user_id == user_id
-        )
-        result = await self.db.execute(stmt)
-        existing_member = result.scalar_one_or_none()
-
-        if existing_member:
-            if existing_member.is_active:
-                return None  # Already an active member
-            else:
-                # Reactivate existing member
-                existing_member.is_active = True
-                existing_member.role = role
-                await self.db.commit()
-                await self.db.refresh(existing_member)
-                return existing_member
-
-        # Create new member
-        project_member = ProjectMember(
-            project_id=project_id, user_id=user_id, role=role, is_active=True
-        )
-
-        self.db.add(project_member)
-        await self.db.commit()
-        await self.db.refresh(project_member)
-
-        logger.info(
-            "Project member added", project_id=project_id, user_id=user_id, role=role
-        )
-        return project_member
-
-    async def remove_project_member(
-        self, project_id: int, user_id: int, removed_by_id: int
+        self, project_id: str, user_id: str, role: ProjectMemberRole
     ) -> bool:
-        """Remove a member from a project"""
-        # Check if user removing member has permission
-        stmt = select(ProjectMember).where(
-            ProjectMember.project_id == project_id,
-            ProjectMember.user_id == removed_by_id,
-            ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active,
-        )
-        result = await self.db.execute(stmt)
-        admin_member = result.scalar_one_or_none()
-
-        if not admin_member:
-            return False
-
-        # Check if trying to remove admin
+        """Add a member to a project if user has permission"""
+        # Check if user is project admin
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
+            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
-        target_member = result.scalar_one_or_none()
+        project_member = result.scalar_one_or_none()
 
-        if target_member and target_member.role == ProjectMemberRole.ADMIN:
-            return False  # Cannot remove admin
+        if not project_member:
+            return False
 
-        # Remove member
-        stmt = select(ProjectMember).where(
-            ProjectMember.project_id == project_id, ProjectMember.user_id == user_id
+        # Check if member already exists
+        existing_member_stmt = select(ProjectMember).where(
+            ProjectMember.project_id == project_id,
+            ProjectMember.user_id == user_id,
         )
-        result = await self.db.execute(stmt)
-        member = result.scalar_one_or_none()
+        existing_member_result = await self.db.execute(existing_member_stmt)
+        existing_member = existing_member_result.scalar_one_or_none()
 
-        if member:
-            member.is_active = False
-            await self.db.commit()
-
-            logger.info(
-                "Project member removed", project_id=project_id, user_id=user_id
+        if existing_member:
+            # Update existing member
+            existing_member.role = role
+            existing_member.is_active = True
+            existing_member.updated_at = datetime.utcnow()
+        else:
+            # Create new member
+            new_member = ProjectMember(
+                project_id=project_id,
+                user_id=user_id,
+                role=role,
+                is_active=True,
             )
-            return True
+            self.db.add(new_member)
 
-        return False
+        await self.db.commit()
+
+        logger.info(
+            "Project member added/updated",
+            project_id=project_id,
+            user_id=user_id,
+            role=role.value,
+        )
+        return True
+
+    async def remove_project_member(
+        self, project_id: str, user_id: str, member_id: str
+    ) -> bool:
+        """Remove a member from a project if user has permission"""
+        # Check if user is project admin
+        stmt = select(ProjectMember).where(
+            ProjectMember.project_id == project_id,
+            ProjectMember.user_id == user_id,
+            ProjectMember.role == ProjectMemberRole.ADMIN,
+            ProjectMember.is_active,
+        )
+        result = await self.db.execute(stmt)
+        project_member = result.scalar_one_or_none()
+
+        if not project_member:
+            return False
+
+        # Get member to remove
+        member_stmt = select(ProjectMember).where(
+            ProjectMember.id == member_id,
+            ProjectMember.project_id == project_id,
+        )
+        member_result = await self.db.execute(member_stmt)
+        member = member_result.scalar_one_or_none()
+
+        if not member:
+            return False
+
+        # Deactivate member
+        member.is_active = False
+        member.updated_at = datetime.utcnow()
+        await self.db.commit()
+
+        logger.info("Project member removed", project_id=project_id, user_id=member_id)
+        return True
 
     async def get_project_members(
-        self, project_id: int, user_id: int
+        self, project_id: str, user_id: str
     ) -> list[ProjectMember]:
         """Get all members of a project if user has access"""
         # Check if user is a member of the project
@@ -330,8 +296,8 @@ class ProjectService:
 
     async def check_user_project_access(
         self,
-        project_id: int,
-        user_id: int,
+        project_id: str,
+        user_id: str,
         required_role: ProjectMemberRole | None = None,
     ) -> bool:
         """Check if user has access to a project with optional role requirement"""
@@ -350,9 +316,9 @@ class ProjectService:
         return member is not None
 
     async def get_project_by_id(
-        self, project_id: int, user_id: int
+        self, project_id: str, user_id: str
     ) -> dict[str, Any] | None:
-        """Get a specific project with member and task counts if user has access"""
+        """Get a specific project with member counts if user has access"""
         # Check if user is a member of the project
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
@@ -365,15 +331,13 @@ class ProjectService:
         if not project_member:
             return None
 
-        # Get project with member and task counts
+        # Get project with member counts
         stmt = (
             select(
                 Project,
                 func.count(ProjectMember.id).label("member_count"),
-                func.count(Task.id).label("task_count"),
             )
             .outerjoin(ProjectMember, Project.id == ProjectMember.project_id)
-            .outerjoin(Task, Project.id == Task.project_id)
             .where(Project.id == project_id)
             .group_by(Project.id)
         )
@@ -397,7 +361,6 @@ class ProjectService:
             "created_at": row.Project.created_at,
             "updated_at": row.Project.updated_at,
             "member_count": row.member_count,
-            "task_count": row.task_count,
         }
 
         return project_dict

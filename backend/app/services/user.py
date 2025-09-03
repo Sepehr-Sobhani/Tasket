@@ -6,7 +6,6 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.models.project import ProjectMember
-from app.models.task import Task
 from app.models.user import User
 from app.schemas.user import UserCreate, UserUpdate
 
@@ -17,7 +16,7 @@ class UserService:
     def __init__(self, db: AsyncSession):
         self.db = db
 
-    async def get_user_by_id(self, user_id: int) -> User | None:
+    async def get_user_by_id(self, user_id: str) -> User | None:
         """Get a user by ID"""
         stmt = select(User).where(User.id == user_id)
         result = await self.db.execute(stmt)
@@ -47,7 +46,7 @@ class UserService:
         return user
 
     async def update_user(
-        self, user_id: int, user_data: UserUpdate, current_user_id: int
+        self, user_id: str, user_data: UserUpdate, current_user_id: str
     ) -> User | None:
         """Update a user if the current user has permission"""
         # Users can only update their own profile
@@ -73,7 +72,7 @@ class UserService:
         logger.info("User updated", user_id=user_id)
         return user
 
-    async def deactivate_user(self, user_id: int, current_user_id: int) -> bool:
+    async def deactivate_user(self, user_id: str, current_user_id: str) -> bool:
         """Deactivate a user if the current user has permission"""
         # Users can only deactivate their own account
         if user_id != current_user_id:
@@ -104,14 +103,12 @@ class UserService:
         return True
 
     async def get_user_projects(
-        self, user_id: int, skip: int = 0, limit: int = 100
+        self, user_id: str, skip: int = 0, limit: int = 100
     ) -> list[dict[str, Any]]:
         """Get all projects for a specific user with basic info"""
         stmt = (
-            select(ProjectMember.project_id, func.count(Task.id).label("task_count"))
-            .join(Task, ProjectMember.project_id == Task.project_id, isouter=True)
+            select(ProjectMember.project_id)
             .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
-            .group_by(ProjectMember.project_id)
             .offset(skip)
             .limit(limit)
         )
@@ -119,7 +116,7 @@ class UserService:
         result = await self.db.execute(stmt)
         return result.all()
 
-    async def get_user_stats(self, user_id: int) -> dict[str, int]:
+    async def get_user_stats(self, user_id: str) -> dict[str, int]:
         """Get statistics for a specific user"""
         # Count projects where user is a member
         projects_stmt = select(func.count(ProjectMember.project_id)).where(
@@ -128,28 +125,12 @@ class UserService:
         projects_result = await self.db.execute(projects_stmt)
         total_projects = projects_result.scalar()
 
-        # Count tasks assigned to user
-        assigned_tasks_stmt = select(func.count(Task.id)).where(
-            Task.assignee_id == user_id
-        )
-        assigned_tasks_result = await self.db.execute(assigned_tasks_stmt)
-        assigned_tasks = assigned_tasks_result.scalar()
-
-        # Count tasks created by user
-        created_tasks_stmt = select(func.count(Task.id)).where(
-            Task.creator_id == user_id
-        )
-        created_tasks_result = await self.db.execute(created_tasks_stmt)
-        created_tasks = created_tasks_result.scalar()
-
         return {
             "total_projects": total_projects,
-            "assigned_tasks": assigned_tasks,
-            "created_tasks": created_tasks,
         }
 
     async def search_users(
-        self, query: str, current_user_id: int, skip: int = 0, limit: int = 50
+        self, query: str, current_user_id: str, skip: int = 0, limit: int = 50
     ) -> list[User]:
         """Search users by name, username, or email"""
         # Only search for active users
@@ -171,7 +152,7 @@ class UserService:
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    async def get_users_by_ids(self, user_ids: list[int]) -> list[User]:
+    async def get_users_by_ids(self, user_ids: list[str]) -> list[User]:
         """Get multiple users by their IDs"""
         if not user_ids:
             return []
@@ -180,7 +161,7 @@ class UserService:
         result = await self.db.execute(stmt)
         return result.scalars().all()
 
-    async def update_user_last_login(self, user_id: int) -> bool:
+    async def update_user_last_login(self, user_id: str) -> bool:
         """Update user's last login timestamp"""
         stmt = select(User).where(User.id == user_id)
         result = await self.db.execute(stmt)
@@ -200,13 +181,30 @@ class UserService:
         username_exists = False
 
         if email:
-            stmt = select(User).where(User.email == email)
-            result = await self.db.execute(stmt)
-            email_exists = result.scalar_one_or_none() is not None
+            email_stmt = select(User).where(User.email == email)
+            email_result = await self.db.execute(email_stmt)
+            email_exists = email_result.scalar_one_or_none() is not None
 
         if username:
-            stmt = select(User).where(User.username == username)
-            result = await self.db.execute(stmt)
-            username_exists = result.scalar_one_or_none() is not None
+            username_stmt = select(User).where(User.username == username)
+            username_result = await self.db.execute(username_stmt)
+            username_exists = username_result.scalar_one_or_none() is not None
 
-        return {"email_exists": email_exists, "username_exists": username_exists}
+        return {
+            "email_exists": email_exists,
+            "username_exists": username_exists,
+        }
+
+    async def get_user_by_github_id(self, github_id: str) -> User | None:
+        """Get a user by their GitHub ID"""
+        # This would need to be implemented based on your GitHub integration
+        # For now, returning None as placeholder
+        return None
+
+    async def create_github_user(
+        self, github_data: dict, email: str, username: str
+    ) -> User | None:
+        """Create a new user from GitHub OAuth data"""
+        # This would need to be implemented based on your GitHub integration
+        # For now, returning None as placeholder
+        return None
