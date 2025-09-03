@@ -63,13 +63,13 @@ install-backend:
 # Install frontend dependencies
 install-frontend:
 	@echo "⚛️  Setting up frontend..."
-	@cd frontend && npm install
+	@cd frontend && pnpm install
 	@echo "🎨 Setting up ShadCN UI..."
-	@cd frontend && npx shadcn@latest init --yes
+	@cd frontend && pnpm dlx shadcn@latest init --yes
 	@echo "🎨 Adding ShadCN UI components..."
-	@cd frontend && npx shadcn@latest add button card input label tabs badge dialog dropdown-menu popover select separator toast tooltip avatar form textarea checkbox radio-group switch progress alert alert-dialog calendar command context-menu hover-card navigation-menu pagination scroll-area sheet skeleton table --yes
+	@cd frontend && pnpm dlx shadcn@latest add button card input label tabs badge dialog dropdown-menu popover select separator toast tooltip avatar form textarea checkbox radio-group switch progress alert alert-dialog calendar command context-menu hover-card navigation-menu pagination scroll-area sheet skeleton table --yes
 	@echo "🔧 Generating TypeScript types from OpenAPI..."
-	@cd frontend && npm run generate-types
+	@cd frontend && pnpm run generate-types
 	@echo "✅ Frontend dependencies installed"
 
 # Start backend server
@@ -80,7 +80,7 @@ start-backend:
 # Start frontend development server
 start-frontend:
 	@echo "🚀 Starting frontend development server..."
-	@cd frontend && npm run dev
+	@cd frontend && pnpm run dev
 
 # Start both backend and frontend (requires tmux)
 start-dev:
@@ -89,7 +89,7 @@ start-dev:
 		tmux new-session -d -s tasket -c $(PWD) \; \
 		split-window -h \; \
 		send-keys -t 0 "cd backend && uv run uvicorn app.main:app --reload --host 0.0.0.0 --port 8000" Enter \; \
-		send-keys -t 1 "cd frontend && npm run dev" Enter \; \
+		send-keys -t 1 "cd frontend && pnpm run dev" Enter \; \
 		attach-session -t tasket; \
 	else \
 		echo "⚠️  tmux not found. Please install tmux or run backend and frontend in separate terminals:"; \
@@ -123,7 +123,7 @@ lint-backend:
 # Lint frontend
 lint-frontend:
 	@echo "🔍 Linting frontend..."
-	@cd frontend && npm run lint
+	@cd frontend && pnpm run lint
 
 # Run type checking on all code
 type-check: type-check-backend type-check-frontend
@@ -136,7 +136,7 @@ type-check-backend:
 # Type check frontend
 type-check-frontend:
 	@echo "🔍 Type checking frontend..."
-	@cd frontend && npm run type-check
+	@cd frontend && pnpm run type-check
 
 # Setup PostgreSQL database
 db-setup:
@@ -245,7 +245,7 @@ check-prereqs:
 # Generate TypeScript types from OpenAPI schema
 generate-types:
 	@echo "🔧 Generating TypeScript types from OpenAPI schema..."
-	@cd frontend && npm run generate-types
+	@cd frontend && pnpm run generate-types
 	@echo "✅ TypeScript types generated"
 
 # Setup pre-commit hooks
