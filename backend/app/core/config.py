@@ -9,7 +9,8 @@ class Settings(BaseSettings):
 
     # Security
     SECRET_KEY: str = "your-secret-key-change-in-production"  # pragma: allowlist secret
-    ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 8  # 8 days
+    ACCESS_TOKEN_EXPIRE_MINUTES: int = 15  # 15 minutes - short expiration
+    REFRESH_TOKEN_EXPIRE_DAYS: int = 7  # 7 days for refresh token
     ALGORITHM: str = "HS256"
 
     # Database

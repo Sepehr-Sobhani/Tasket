@@ -27,7 +27,19 @@ def create_access_token(data: dict, expires_delta: timedelta = None) -> str:
         )
 
     to_encode = data.copy()
-    to_encode.update({"exp": expire})
+    to_encode.update({"exp": expire, "type": "access"})
+    encoded_jwt = jwt.encode(
+        to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
+    )
+    return encoded_jwt
+
+
+def create_refresh_token(data: dict) -> str:
+    """Create JWT refresh token"""
+    expire = datetime.utcnow() + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
+
+    to_encode = data.copy()
+    to_encode.update({"exp": expire, "type": "refresh"})
     encoded_jwt = jwt.encode(
         to_encode, settings.SECRET_KEY, algorithm=settings.ALGORITHM
     )
@@ -91,7 +103,9 @@ async def get_current_user(
             algorithms=[settings.ALGORITHM],
         )
         user_id: str = payload.get("sub")
-        if user_id is None:
+        token_type: str = payload.get("type")
+
+        if user_id is None or token_type != "access":
             raise credentials_exception
     except InvalidTokenError:
         raise credentials_exception from None
