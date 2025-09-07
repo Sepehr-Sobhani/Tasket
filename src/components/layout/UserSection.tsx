@@ -47,7 +47,7 @@ export function UserSection({ user, isCollapsed, onLogout }: UserSectionProps) {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent
-          className="w-56 p-2 bg-white border border-gray-200 rounded-lg shadow-lg"
+          className="w-56 p-2 border border-gray-200 rounded-lg shadow-lg"
           align="end"
           forceMount
         >
