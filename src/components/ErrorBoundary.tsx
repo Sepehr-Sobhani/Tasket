@@ -33,6 +33,7 @@ export class ErrorBoundary extends React.Component<
 
   resetError = () => {
     this.setState({ hasError: false, error: undefined });
+    window.location.href = "/";
   };
 
   render() {
