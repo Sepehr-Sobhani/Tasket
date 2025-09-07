@@ -33,12 +33,6 @@ export default function ProjectDashboardPage() {
     }
   }, [searchParams, refreshUser]);
 
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/");
-    }
-  }, [user, isLoading, router]);
-
   const handleLogout = () => {
     logout();
     router.push("/");

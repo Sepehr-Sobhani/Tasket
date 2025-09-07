@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateProject } from "@/hooks/use-project-mutations";
@@ -28,12 +28,6 @@ export default function DashboardPage() {
     useCreateProject();
 
   const { data: projects, isLoading: isLoadingProjects } = useProjects();
-
-  useEffect(() => {
-    if (!isLoading && !user) {
-      router.push("/");
-    }
-  }, [user, isLoading, router]);
 
   const handleLogout = () => {
     logout();
