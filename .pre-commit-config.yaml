@@ -13,44 +13,44 @@ repos:
       - id: check-case-conflict
       - id: debug-statements
 
-  # Python backend hooks
-  - repo: https://github.com/astral-sh/ruff-pre-commit
-    rev: v0.12.4
-    hooks:
-      - id: ruff
-        args: [--fix]
-        files: ^backend/.*\.py$
-      - id: ruff-format
-        files: ^backend/.*\.py$
-
-  # Python type checking with ty
-  - repo: local
-    hooks:
-      - id: ty
-        name: ty
-        entry: cd backend && uv run ty check
-        language: system
-        files: ^backend/.*\.py$
-        pass_filenames: false
-
-  # Frontend TypeScript/JavaScript hooks
+  # TypeScript/JavaScript hooks
   - repo: local
     hooks:
       - id: eslint
         name: eslint
-        entry: cd frontend && npm run lint
+        entry: pnpm run lint
         language: system
-        files: ^frontend/.*\.(js|jsx|ts|tsx)$
+        files: ^.*\.(js|jsx|ts|tsx)$
         pass_filenames: false
 
-  # Frontend code formatting
+  # Code formatting
   - repo: local
     hooks:
       - id: prettier
         name: prettier
-        entry: cd frontend && npm run format
+        entry: pnpm run format
         language: system
-        files: ^frontend/.*\.(js|jsx|ts|tsx|json|css|scss|html|yaml|md)$
+        files: ^.*\.(js|jsx|ts|tsx|json|css|scss|html|yaml|md)$
+        pass_filenames: false
+
+  # TypeScript type checking
+  - repo: local
+    hooks:
+      - id: type-check
+        name: type-check
+        entry: pnpm run type-check
+        language: system
+        files: ^.*\.(ts|tsx)$
+        pass_filenames: false
+
+  # Prisma schema validation
+  - repo: local
+    hooks:
+      - id: prisma-validate
+        name: prisma-validate
+        entry: pnpm run db:generate
+        language: system
+        files: ^prisma/schema\.prisma$
         pass_filenames: false
 
   # Security checks - detect secrets and credentials
@@ -58,4 +58,4 @@ repos:
     rev: v1.4.0
     hooks:
       - id: detect-secrets
-        exclude: ^(frontend/|backend/venv/|\.venv/|node_modules/)
+        exclude: ^(node_modules/|\.next/|\.pnpm-store/)

@@ -1,0 +1,81 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String   @id @default(cuid())
+  email      String   @unique
+  username   String   @unique
+  fullName   String?
+  bio        String?
+  avatarUrl  String?
+  password   String?  // Optional for OAuth users
+  isActive   Boolean  @default(true)
+  isSuperuser Boolean @default(false)
+  isVerified Boolean  @default(false)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  lastLogin  DateTime?
+
+  // Relations
+  projects   ProjectMember[]
+  ownedProjects Project[] @relation("ProjectOwner")
+
+  @@map("users")
+}
+
+model Project {
+  id               String   @id @default(cuid())
+  name             String
+  description      String?
+  visibility       ProjectVisibility @default(PRIVATE)
+  isActive         Boolean  @default(true)
+  isDefault        Boolean  @default(false)
+  githubRepoId     String?
+  githubRepoName   String?
+  githubRepoOwner  String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+  memberCount      Int      @default(0)
+
+  // Relations
+  ownerId          String
+  owner            User     @relation("ProjectOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members          ProjectMember[]
+
+  @@map("projects")
+}
+
+model ProjectMember {
+  id        String   @id @default(cuid())
+  projectId String
+  userId    String
+  role      ProjectRole @default(MEMBER)
+  joinedAt  DateTime @default(now())
+
+  // Relations
+  project   Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([projectId, userId])
+  @@map("project_members")
+}
+
+enum ProjectVisibility {
+  PUBLIC
+  PRIVATE
+}
+
+enum ProjectRole {
+  OWNER
+  ADMIN
+  MEMBER
+}

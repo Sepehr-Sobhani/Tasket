@@ -1,0 +1,98 @@
+import { getServerSession } from "next-auth/next";
+import { authOptions } from "@/lib/auth-options";
+
+// Helper function to get auth headers for client-side requests
+export function getAuthHeaders(): Record<string, string> {
+  // For client-side requests, we'll use NextAuth session
+  // This will be handled by the middleware
+  return {};
+}
+
+// Helper function to get auth headers for server-side requests
+export async function getServerAuthHeaders(): Promise<Record<string, string>> {
+  const session = await getServerSession(authOptions);
+
+  if (!session?.user?.id) {
+    return {};
+  }
+
+  return {
+    "x-user-id": session.user.id,
+  };
+}
+
+// API client functions
+export const api = {
+  // Projects
+  projects: {
+    getAll: async () => {
+      const response = await fetch("/api/projects");
+      if (!response.ok) throw new Error("Failed to fetch projects");
+      return response.json();
+    },
+    getById: async (id: string) => {
+      const response = await fetch(`/api/projects/${id}`);
+      if (!response.ok) throw new Error("Failed to fetch project");
+      return response.json();
+    },
+    getDefault: async () => {
+      const response = await fetch("/api/projects/default");
+      if (!response.ok) throw new Error("Failed to fetch default project");
+      return response.json();
+    },
+    create: async (data: any) => {
+      const response = await fetch("/api/projects", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to create project");
+      return response.json();
+    },
+    update: async (id: string, data: any) => {
+      const response = await fetch(`/api/projects/${id}`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(data),
+      });
+      if (!response.ok) throw new Error("Failed to update project");
+      return response.json();
+    },
+    delete: async (id: string) => {
+      const response = await fetch(`/api/projects/${id}`, {
+        method: "DELETE",
+      });
+      if (!response.ok) throw new Error("Failed to delete project");
+      return response.json();
+    },
+  },
+
+  // Dashboard
+  dashboard: {
+    getStats: async () => {
+      const response = await fetch("/api/projects/stats/dashboard");
+      if (!response.ok) throw new Error("Failed to fetch dashboard stats");
+      return response.json();
+    },
+  },
+};
+
+// Helper function to handle 401 errors
+export async function handleAuthError(response: Response): Promise<boolean> {
+  if (response.status === 401) {
+    // Redirect to login if we're not already there
+    if (
+      typeof window !== "undefined" &&
+      !window.location.pathname.startsWith("/auth")
+    ) {
+      window.location.href = "/api/auth/signin";
+    }
+
+    return true; // Indicates we handled the error
+  }
+  return false; // Error not handled
+}
