@@ -165,7 +165,7 @@ export default function ProjectDetailPage() {
                 <div>
                   <h3 className="font-medium text-primary">Created</h3>
                   <p className="text-sm text-muted-foreground">
-                    {new Date(project.created_at).toLocaleDateString("en-US", {
+                    {new Date(project.createdAt).toLocaleDateString("en-US", {
                       month: "long",
                       day: "2-digit",
                       year: "numeric",

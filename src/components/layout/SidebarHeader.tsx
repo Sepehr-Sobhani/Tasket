@@ -1,6 +1,5 @@
 import { Button } from "@/components/ui/button";
 import { Menu, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface SidebarHeaderProps {

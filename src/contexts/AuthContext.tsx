@@ -2,7 +2,20 @@
 
 import React, { createContext, useContext, useState, useEffect } from "react";
 import { useSession, signOut } from "next-auth/react";
-import { AuthService, User } from "@/lib/auth";
+// import { AuthService, User } from "@/lib/auth";
+
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  fullName?: string;
+  avatarUrl?: string;
+  isActive: boolean;
+  isVerified: boolean;
+  createdAt: string;
+  updatedAt: string;
+  lastLogin?: string;
+}
 
 interface AuthContextType {
   user: User | null;
@@ -78,7 +91,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       // Create user object from session data
       createUserFromSession(backendUserId);
-    } catch (error) {
+    } catch (_error) {
       // Still create user from session even if backend is unavailable
       createUserFromSession(backendUserId);
     } finally {
@@ -92,38 +105,29 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       username:
         session?.user?.name || session?.user?.email?.split("@")[0] || "user",
       email: session?.user?.email || "",
-      full_name: session?.user?.name || undefined,
-      avatar_url: session?.user?.image || undefined,
-      bio: undefined,
-      github_id: undefined,
-      github_username: undefined,
-      role: "member",
-      is_active: true,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
+      fullName: session?.user?.name || undefined,
+      avatarUrl: session?.user?.image || undefined,
+      isActive: true,
+      isVerified: true,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
     };
 
     setUser(userData);
   };
 
-  const login = async (username: string, password: string) => {
-    try {
-      const authData = await AuthService.login({ username, password });
-      setToken(authData.access_token);
-      const userData = await AuthService.getCurrentUser();
-      setUser(userData);
-    } catch (error) {
-      throw error;
-    }
+  const login = async (_username: string, _password: string) => {
+    // Traditional login not implemented - using NextAuth OAuth
+    throw new Error(
+      "Traditional login not implemented. Please use OAuth providers."
+    );
   };
 
-  const register = async (userData: any) => {
-    try {
-      await AuthService.register(userData);
-      // After registration, user needs to login
-    } catch (error) {
-      throw error;
-    }
+  const register = async (_userData: any) => {
+    // Registration not implemented - using NextAuth OAuth
+    throw new Error(
+      "Registration not implemented. Please use OAuth providers."
+    );
   };
 
   const loginWithGitHub = async () => {

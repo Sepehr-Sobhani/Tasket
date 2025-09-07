@@ -8,7 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ChevronDown, Bell, LogOut } from "lucide-react";
+import { LogOut } from "lucide-react";
 
 interface UserSectionProps {
   user: any;

@@ -3,7 +3,7 @@ import { getServerSession } from "next-auth/next";
 import { prisma } from "@/lib/prisma";
 import { authOptions } from "@/lib/auth-options";
 
-async function getCurrentUser(request: NextRequest) {
+async function getCurrentUser() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return null;
@@ -14,9 +14,9 @@ async function getCurrentUser(request: NextRequest) {
   });
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

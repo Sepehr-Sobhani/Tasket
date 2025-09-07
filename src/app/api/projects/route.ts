@@ -4,7 +4,7 @@ import { prisma } from "@/lib/prisma";
 import { projectCreateSchema } from "@/lib/validations/project";
 import { authOptions } from "@/lib/auth-options";
 
-async function getCurrentUser(request: NextRequest) {
+async function getCurrentUser() {
   const session = await getServerSession(authOptions);
   if (!session?.user?.id) {
     return null;
@@ -15,14 +15,14 @@ async function getCurrentUser(request: NextRequest) {
   });
 }
 
-export async function GET(request: NextRequest) {
+export async function GET(_request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const url = new URL(request.url);
+    const url = new URL(_request.url);
     const skip = parseInt(url.searchParams.get("skip") || "0");
     const limit = parseInt(url.searchParams.get("limit") || "10");
 
@@ -82,7 +82,7 @@ export async function GET(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser(request);
+    const user = await getCurrentUser();
     if (!user) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }

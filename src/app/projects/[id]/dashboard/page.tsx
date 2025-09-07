@@ -80,7 +80,7 @@ export default function ProjectDashboardPage() {
             <p className="text-sm text-muted-foreground">
               <strong>Visibility:</strong> {project.visibility}
             </p>
-            {project.is_default && (
+            {project.isDefault && (
               <p className="text-sm text-green-600 font-medium">
                 ✓ This is your default project
               </p>

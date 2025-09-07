@@ -43,7 +43,10 @@ export default function DashboardPage() {
     visibility: string;
   }) => {
     try {
-      const newProject = await createProject(projectData);
+      const newProject = await createProject({
+        ...projectData,
+        visibility: projectData.visibility as "public" | "private",
+      });
       setShowCreateProject(false);
       // Redirect to the new project
       router.push(`/projects/${newProject.id}`);
@@ -71,7 +74,7 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold tracking-tight text-foreground">
-              Welcome back, {user.full_name || user.username}!
+              Welcome back, {user.fullName || user.username}!
             </h1>
           </div>
         </div>
@@ -86,7 +89,7 @@ export default function DashboardPage() {
             </CardHeader>
             <CardContent className="space-y-4">
               <p className="text-muted-foreground">
-                You're all set up! Here are some things you can do to get
+                You&apos;re all set up! Here are some things you can do to get
                 started:
               </p>
               <div className="space-y-3">

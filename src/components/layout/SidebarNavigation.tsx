@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
-import { LayoutDashboard, Target, CheckSquare, Tags } from "lucide-react";
+import { LayoutDashboard } from "lucide-react";
 
 interface SidebarNavigationProps {
   isCollapsed: boolean;
