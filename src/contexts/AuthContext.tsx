@@ -1,8 +1,7 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, { createContext, useContext, useState, useEffect, useCallback } from "react";
 import { useSession, signOut } from "next-auth/react";
-// import { AuthService, User } from "@/lib/auth";
 
 interface User {
   id: string;
@@ -21,15 +20,8 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
-  // eslint-disable-next-line no-unused-vars
-  login: (username: string, password: string) => Promise<void>;
-  // eslint-disable-next-line no-unused-vars
-  register: (userData: any) => Promise<void>;
-  loginWithGitHub: () => Promise<void>;
-  loginWithGoogle: () => Promise<void>;
   logout: () => void;
-  // eslint-disable-next-line no-unused-vars
-  refreshUser: (newToken?: string) => Promise<void>;
+  refreshUser: (_newToken?: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -40,71 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    if (status === "loading") {
-      setIsLoading(true);
-      return;
-    }
-
-    // @ts-ignore - NextAuth session type compatibility
-    if (status === "authenticated" && session?.user?.id) {
-      // User is authenticated with NextAuth, get backend user data
-      // @ts-ignore - NextAuth session type compatibility
-      fetchBackendUser(session.user.id);
-    } else {
-      // User is not authenticated - clear any existing data
-      setUser(null);
-      setToken(null);
-      // Clear any stale tokens from localStorage
-      if (typeof window !== "undefined") {
-        localStorage.removeItem("access_token");
-        localStorage.removeItem("nextauth_session_token");
-      }
-      setIsLoading(false);
-    }
-  }, [session, status]);
-
-  const fetchBackendUser = async (backendUserId: string) => {
-    try {
-      // Store the backend user ID for token exchange
-      localStorage.setItem("nextauth_session_token", backendUserId);
-
-      // Get API URL from config
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (!apiUrl) {
-        // Fallback to creating user without backend token exchange
-        createUserFromSession(backendUserId);
-        return;
-      }
-
-      // Exchange NextAuth session for JWT token
-      const response = await fetch(`${apiUrl}/api/v1/auth/exchange-token`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ user_id: backendUserId }),
-      });
-
-      if (response.ok) {
-        const tokenData = await response.json();
-        localStorage.setItem("access_token", tokenData.access_token);
-        setToken(tokenData.access_token);
-      } else {
-        setToken("nextauth-session");
-      }
-
-      // Create user object from session data
-      createUserFromSession(backendUserId);
-    } catch (_error) {
-      // Still create user from session even if backend is unavailable
-      createUserFromSession(backendUserId);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  const createUserFromSession = (backendUserId: string) => {
+  const createUserFromSession = useCallback((backendUserId: string) => {
     const userData: User = {
       id: backendUserId,
       username:
@@ -119,53 +47,44 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     };
 
     setUser(userData);
-  };
+    setToken("nextauth-session");
+    setIsLoading(false);
+  }, [session]);
 
-  const login = async (_username: string, _password: string) => {
-    // Traditional login not implemented - using NextAuth OAuth
-    throw new Error(
-      "Traditional login not implemented. Please use OAuth providers."
-    );
-  };
-
-  const register = async (_userData: any) => {
-    // Registration not implemented - using NextAuth OAuth
-    throw new Error(
-      "Registration not implemented. Please use OAuth providers."
-    );
-  };
-
-  const loginWithGitHub = async () => {
-    // This will be handled by NextAuth
-    throw new Error("Use NextAuth signIn instead");
-  };
-
-  const loginWithGoogle = async () => {
-    // This will be handled by NextAuth
-    throw new Error("Use NextAuth signIn instead");
-  };
-
-  const logout = async () => {
-    // Clear all tokens from localStorage
-    if (typeof window !== "undefined") {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("nextauth_session_token");
+  useEffect(() => {
+    if (status === "loading") {
+      setIsLoading(true);
+      return;
     }
 
+    // @ts-ignore - NextAuth session type compatibility
+    if (status === "authenticated" && session?.user?.id) {
+      // Create user object from NextAuth session data
+      // @ts-ignore - NextAuth session type compatibility
+      createUserFromSession(session.user.id);
+    } else {
+      // User is not authenticated - clear any existing data
+      setUser(null);
+      setToken(null);
+      setIsLoading(false);
+    }
+  }, [session, status, createUserFromSession]);
+
+  const logout = async () => {
     await signOut({ callbackUrl: "/" });
     setUser(null);
     setToken(null);
   };
 
-  const refreshUser = async (newToken?: string) => {
-    if (newToken) {
-      setToken(newToken);
+  const refreshUser = async (_newToken?: string) => {
+    if (_newToken) {
+      setToken(_newToken);
     }
 
     // @ts-ignore - NextAuth session type compatibility
     if (session?.user?.id) {
       // @ts-ignore - NextAuth session type compatibility
-      await fetchBackendUser(session.user.id);
+      createUserFromSession(session.user.id);
     }
   };
 
@@ -173,10 +92,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     user,
     token,
     isLoading: isLoading || status === "loading",
-    login,
-    register,
-    loginWithGitHub,
-    loginWithGoogle,
     logout,
     refreshUser,
   };
