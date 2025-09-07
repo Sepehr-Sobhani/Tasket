@@ -26,7 +26,7 @@ class ProjectService:
                 func.count(ProjectMember.id).label("member_count"),
             )
             .join(ProjectMember, Project.id == ProjectMember.project_id, isouter=True)
-            .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
+            .where(ProjectMember.user_id == user_id)
             .group_by(Project.id)
             .offset(skip)
             .limit(limit)
@@ -42,11 +42,7 @@ class ProjectService:
                 "id": row.Project.id,
                 "name": row.Project.name,
                 "description": row.Project.description,
-                "visibility": row.Project.visibility,
-                "is_active": row.Project.is_active,
-                "github_repo_id": row.Project.github_repo_id,
-                "github_repo_name": row.Project.github_repo_name,
-                "github_repo_owner": row.Project.github_repo_owner,
+                "is_default": row.Project.is_default,
                 "created_at": row.Project.created_at,
                 "updated_at": row.Project.updated_at,
                 "member_count": row.member_count,
@@ -61,7 +57,7 @@ class ProjectService:
         user_projects_stmt = (
             select(Project.id)
             .join(ProjectMember)
-            .where(ProjectMember.user_id == user_id, ProjectMember.is_active)
+            .where(ProjectMember.user_id == user_id)
         )
         user_projects_result = await self.db.execute(user_projects_stmt)
         user_project_ids = [row[0] for row in user_projects_result.all()]
@@ -78,7 +74,6 @@ class ProjectService:
             func.count(func.distinct(ProjectMember.user_id))
         ).where(
             ProjectMember.project_id.in_(user_project_ids),
-            ProjectMember.is_active,
         )
         unique_members_result = await self.db.execute(unique_members_stmt)
         unique_team_members = unique_members_result.scalar()
@@ -109,7 +104,6 @@ class ProjectService:
             project_id=project.id,
             user_id=creator_id,
             role=ProjectMemberRole.ADMIN,
-            is_active=True,
         )
 
         self.db.add(project_member)
@@ -127,7 +121,6 @@ class ProjectService:
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -162,7 +155,6 @@ class ProjectService:
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -194,7 +186,6 @@ class ProjectService:
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -213,7 +204,6 @@ class ProjectService:
         if existing_member:
             # Update existing member
             existing_member.role = role
-            existing_member.is_active = True
             existing_member.updated_at = datetime.utcnow()
         else:
             # Create new member
@@ -221,7 +211,6 @@ class ProjectService:
                 project_id=project_id,
                 user_id=user_id,
                 role=role,
-                is_active=True,
             )
             self.db.add(new_member)
 
@@ -244,7 +233,6 @@ class ProjectService:
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
             ProjectMember.role == ProjectMemberRole.ADMIN,
-            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
@@ -279,7 +267,6 @@ class ProjectService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         user_member = result.scalar_one_or_none()
@@ -304,7 +291,6 @@ class ProjectService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active,
         )
 
         if required_role:
@@ -323,7 +309,6 @@ class ProjectService:
         stmt = select(ProjectMember).where(
             ProjectMember.project_id == project_id,
             ProjectMember.user_id == user_id,
-            ProjectMember.is_active,
         )
         result = await self.db.execute(stmt)
         project_member = result.scalar_one_or_none()
