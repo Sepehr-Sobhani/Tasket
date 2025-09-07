@@ -22,14 +22,6 @@ export interface Project {
   memberCount: number;
 }
 
-export function useDashboardStats() {
-  return useQuery<DashboardStats>({
-    queryKey: ["dashboard-stats"],
-    queryFn: () => api.dashboard.getStats(),
-    staleTime: 2 * 60 * 1000, // 2 minutes
-  });
-}
-
 export function useProjects() {
   return useQuery<Project[]>({
     queryKey: ["projects"],

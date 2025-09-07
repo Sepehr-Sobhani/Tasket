@@ -1,5 +1,6 @@
 import { getServerSession } from "next-auth/next";
 import { authOptions } from "@/lib/auth-options";
+import type { ProjectCreateInput } from "@/lib/validations/project";
 
 // Helper function to get auth headers for client-side requests
 export function getAuthHeaders(): Record<string, string> {
@@ -37,12 +38,7 @@ export const api = {
       if (!response.ok) throw new Error("Failed to fetch project");
       return response.json();
     },
-    getDefault: async () => {
-      const response = await fetch("/api/projects/default");
-      if (!response.ok) throw new Error("Failed to fetch default project");
-      return response.json();
-    },
-    create: async (data: any) => {
+    create: async (data: ProjectCreateInput) => {
       const response = await fetch("/api/projects", {
         method: "POST",
         headers: {
@@ -53,37 +49,10 @@ export const api = {
       if (!response.ok) throw new Error("Failed to create project");
       return response.json();
     },
-    update: async (id: string, data: any) => {
-      const response = await fetch(`/api/projects/${id}`, {
-        method: "PUT",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      if (!response.ok) throw new Error("Failed to update project");
-      return response.json();
-    },
-    delete: async (id: string) => {
-      const response = await fetch(`/api/projects/${id}`, {
-        method: "DELETE",
-      });
-      if (!response.ok) throw new Error("Failed to delete project");
-      return response.json();
-    },
-  },
-
-  // Dashboard
-  dashboard: {
-    getStats: async () => {
-      const response = await fetch("/api/projects/stats/dashboard");
-      if (!response.ok) throw new Error("Failed to fetch dashboard stats");
-      return response.json();
-    },
   },
 };
 
-// Helper function to handle 401 errors
+// Helper function to handle 401 errors (kept for backward compatibility)
 export async function handleAuthError(response: Response): Promise<boolean> {
   if (response.status === 401) {
     // Redirect to login if we're not already there

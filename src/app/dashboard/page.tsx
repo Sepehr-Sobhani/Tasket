@@ -39,14 +39,11 @@ export default function DashboardPage() {
 
   const handleCreateProject = async (projectData: {
     name: string;
-    description: string;
-    visibility: string;
+    description?: string;
+    visibility: "public" | "private";
   }) => {
     try {
-      const newProject = await createProject({
-        ...projectData,
-        visibility: projectData.visibility as "public" | "private",
-      });
+      const newProject = await createProject(projectData);
       setShowCreateProject(false);
       // Redirect to the new project
       router.push(`/projects/${newProject.id}`);

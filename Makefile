@@ -110,7 +110,7 @@ EOF\
 			echo "✅ .env.local file created"; \
 			echo "⚠️  Please update DATABASE_URL in .env.local with your PostgreSQL credentials"; \
 		fi; \
-	fi
+fi; \
 	@echo "✅ Database setup complete"
 
 # Reset database (WARNING: destroys all data)
