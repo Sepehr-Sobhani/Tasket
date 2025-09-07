@@ -9,12 +9,10 @@ import { DashboardContent } from "@/components/dashboard/dashboard-content";
 export default function DashboardPage() {
   const { user } = useAuth();
 
-  if (!user) return null;
-
   return (
-    <AppLayout user={user}>
+    <AppLayout>
       <Suspense fallback={<DashboardSkeleton />}>
-        <DashboardContent user={user} />
+        <DashboardContent user={user!} />
       </Suspense>
     </AppLayout>
   );

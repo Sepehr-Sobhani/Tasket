@@ -30,12 +30,36 @@ export const api = {
   projects: {
     getAll: async () => {
       const response = await fetch("/api/projects");
-      if (!response.ok) throw new Error("Failed to fetch projects");
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Handle 401 by redirecting to login
+          if (
+            typeof window !== "undefined" &&
+            window.location.pathname !== "/"
+          ) {
+            window.location.href = "/";
+          }
+          throw new Error("Authentication required");
+        }
+        throw new Error("Failed to fetch projects");
+      }
       return response.json();
     },
     getById: async (id: string) => {
       const response = await fetch(`/api/projects/${id}`);
-      if (!response.ok) throw new Error("Failed to fetch project");
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Handle 401 by redirecting to login
+          if (
+            typeof window !== "undefined" &&
+            window.location.pathname !== "/"
+          ) {
+            window.location.href = "/";
+          }
+          throw new Error("Authentication required");
+        }
+        throw new Error("Failed to fetch project");
+      }
       return response.json();
     },
     create: async (data: ProjectCreateInput) => {
@@ -46,7 +70,19 @@ export const api = {
         },
         body: JSON.stringify(data),
       });
-      if (!response.ok) throw new Error("Failed to create project");
+      if (!response.ok) {
+        if (response.status === 401) {
+          // Handle 401 by redirecting to login
+          if (
+            typeof window !== "undefined" &&
+            window.location.pathname !== "/"
+          ) {
+            window.location.href = "/";
+          }
+          throw new Error("Authentication required");
+        }
+        throw new Error("Failed to create project");
+      }
       return response.json();
     },
   },
@@ -56,11 +92,8 @@ export const api = {
 export async function handleAuthError(response: Response): Promise<boolean> {
   if (response.status === 401) {
     // Redirect to login if we're not already there
-    if (
-      typeof window !== "undefined" &&
-      !window.location.pathname.startsWith("/auth")
-    ) {
-      window.location.href = "/api/auth/signin";
+    if (typeof window !== "undefined" && window.location.pathname !== "/") {
+      window.location.href = "/";
     }
 
     return true; // Indicates we handled the error

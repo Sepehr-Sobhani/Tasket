@@ -9,12 +9,10 @@ import { ProjectContent } from "@/components/project/project-content";
 export default function ProjectDetailPage() {
   const { user } = useAuth();
 
-  if (!user) return null;
-
   return (
-    <AppLayout user={user}>
+    <AppLayout>
       <Suspense fallback={<ProjectSkeleton />}>
-        <ProjectContent user={user} />
+        <ProjectContent user={user!} />
       </Suspense>
     </AppLayout>
   );

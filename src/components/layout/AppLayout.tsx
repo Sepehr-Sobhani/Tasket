@@ -1,19 +1,24 @@
 "use client";
 
 import { Sidebar } from "./Sidebar";
+import { AuthGuard } from "@/components/auth/AuthGuard";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface AppLayoutProps {
   children: React.ReactNode;
-  user: any;
 }
 
-export function AppLayout({ children, user }: AppLayoutProps) {
+export function AppLayout({ children }: AppLayoutProps) {
+  const { user } = useAuth();
+
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar user={user} />
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <main className="flex-1 overflow-y-auto p-6">{children}</main>
+    <AuthGuard>
+      <div className="flex h-screen bg-background">
+        <Sidebar user={user!} />
+        <div className="flex-1 flex flex-col overflow-hidden">
+          <main className="flex-1 overflow-y-auto p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </AuthGuard>
   );
 }
