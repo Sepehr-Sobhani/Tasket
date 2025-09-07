@@ -4,7 +4,6 @@ import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { SidebarHeader } from "./SidebarHeader";
 import { SidebarNavigation } from "./SidebarNavigation";
-import { ProjectsAccordion } from "./ProjectsAccordion";
 import { UserSection } from "./UserSection";
 
 interface SidebarProps {
@@ -31,7 +30,6 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
 
         <div className="flex-1 space-y-1 p-2">
           <SidebarNavigation isCollapsed={isCollapsed} />
-          <ProjectsAccordion isCollapsed={isCollapsed} />
         </div>
 
         <UserSection

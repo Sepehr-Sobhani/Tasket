@@ -1,6 +1,3 @@
-import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api-client";
-
 export interface DashboardStats {
   total_projects: number;
   unique_team_members: number;
@@ -20,12 +17,4 @@ export interface Project {
   createdAt: string;
   updatedAt?: string | null;
   memberCount: number;
-}
-
-export function useProjects() {
-  return useQuery<Project[]>({
-    queryKey: ["projects"],
-    queryFn: () => api.projects.getAll(),
-    staleTime: 5 * 60 * 1000, // 5 minutes
-  });
 }
