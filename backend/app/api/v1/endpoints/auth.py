@@ -1,45 +1,24 @@
 from datetime import timedelta
 from typing import Any
 
+import jwt
 from fastapi import APIRouter, Depends, HTTPException, status
+from jwt.exceptions import InvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.config import settings
 from app.core.database import get_async_session
 from app.core.security import (
-    authenticate_user,
     create_access_token,
+    create_refresh_token,
     get_current_active_user,
-    get_password_hash,
 )
 from app.models.user import OAuthAccount, User
-from app.schemas.auth import LoginRequest, Token
+from app.schemas.auth import RefreshTokenRequest, Token
 from app.schemas.user import User as UserSchema
-from app.schemas.user import UserCreate
 
 router = APIRouter()
-
-
-@router.post("/login", response_model=Token)
-async def login(
-    login_data: LoginRequest, session: AsyncSession = Depends(get_async_session)
-):
-    """Login with email and password"""
-    user = await authenticate_user(session, login_data.email, login_data.password)
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect email or password",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(
-        data={"sub": str(user.id)}, expires_delta=access_token_expires
-    )
-
-    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @router.post("/oauth/user", response_model=UserSchema)
@@ -110,46 +89,6 @@ async def create_or_get_oauth_user(
     return user
 
 
-@router.post("/register", response_model=UserSchema)
-async def register(
-    user_data: UserCreate, session: AsyncSession = Depends(get_async_session)
-):
-    """Register a new user"""
-    # Check if user already exists
-    result = await session.execute(select(User).where(User.email == user_data.email))
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Email already registered"
-        )
-
-    # Check if username already exists
-    result = await session.execute(
-        select(User).where(User.username == user_data.username)
-    )
-    if result.scalar_one_or_none():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail="Username already taken"
-        )
-
-    # Create new user
-    user = User(
-        email=user_data.email,
-        username=user_data.username,
-        full_name=user_data.full_name,
-        avatar_url=user_data.avatar_url,
-        bio=user_data.bio,
-        hashed_password=get_password_hash(user_data.password),
-        is_active=True,
-        is_verified=False,
-    )
-
-    session.add(user)
-    await session.commit()
-    await session.refresh(user)
-
-    return user
-
-
 @router.post("/exchange-token", response_model=Token)
 async def exchange_oauth_token(
     user_data: dict, session: AsyncSession = Depends(get_async_session)
@@ -172,16 +111,72 @@ async def exchange_oauth_token(
             detail="User not found",
         )
 
-    # Create JWT token
+    # Create JWT tokens
     access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
     access_token = create_access_token(
         data={"sub": str(user.id)}, expires_delta=access_token_expires
     )
+    refresh_token = create_refresh_token(data={"sub": str(user.id)})
 
     return {
         "access_token": access_token,
+        "refresh_token": refresh_token,
         "token_type": "bearer",
         "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # Convert to seconds
+        "user_id": user.id,
+        "username": user.username,
+    }
+
+
+@router.post("/refresh", response_model=Token)
+async def refresh_token(
+    refresh_data: RefreshTokenRequest,
+    session: AsyncSession = Depends(get_async_session),
+) -> Any:
+    """Refresh access token using refresh token"""
+    try:
+        # Decode refresh token
+        payload = jwt.decode(
+            refresh_data.refresh_token,
+            settings.SECRET_KEY,
+            algorithms=[settings.ALGORITHM],
+        )
+
+        user_id: str = payload.get("sub")
+        token_type: str = payload.get("type")
+
+        if user_id is None or token_type != "refresh":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+            )
+
+    except InvalidTokenError:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid refresh token"
+        ) from None
+
+    # Verify user exists and is active
+    result = await session.execute(select(User).where(User.id == user_id))
+    user = result.scalar_one_or_none()
+
+    if not user or not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found or inactive",
+        )
+
+    # Create new tokens
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": str(user.id)}, expires_delta=access_token_expires
+    )
+    refresh_token = create_refresh_token(data={"sub": str(user.id)})
+
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "expires_in": settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,
         "user_id": user.id,
         "username": user.username,
     }
