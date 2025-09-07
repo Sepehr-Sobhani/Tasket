@@ -1,4 +1,3 @@
-from fastapi_users.db import SQLAlchemyBaseUserTable
 from sqlalchemy import Boolean, Column, DateTime, ForeignKey, String
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
@@ -7,7 +6,7 @@ from ulid import ULID
 from app.core.database import Base
 
 
-class User(SQLAlchemyBaseUserTable[str], Base):
+class User(Base):
     __tablename__ = "users"
 
     id = Column(String(26), primary_key=True, default=lambda: str(ULID()), index=True)
