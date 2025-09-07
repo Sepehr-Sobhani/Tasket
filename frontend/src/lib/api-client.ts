@@ -154,45 +154,6 @@ export const api = {
     },
   },
 
-  // Users
-  users: {
-    getAll: async () => {
-      const { data, error } = await client.GET("/api/v1/users/", {
-        headers: await getNextAuthHeaders(),
-      });
-      if (error) throw error;
-      return data;
-    },
-    getById: async (id: string) => {
-      const { data, error } = await client.GET("/api/v1/users/{user_id}", {
-        params: { path: { user_id: parseInt(id) } },
-        headers: await getNextAuthHeaders(),
-      });
-      if (error) throw error;
-      return data;
-    },
-    getMe: async () => {
-      const { data, error } = await client.GET("/api/v1/auth/me", {
-        headers: await getNextAuthHeaders(),
-      });
-      if (error) throw error;
-      return data;
-    },
-    update: async (id: string, data: any) => {
-      // Note: PUT endpoint for users might not exist in current API schema
-      // Using fallback approach for now
-      const response = await fetch(`${config.api.baseUrl}/api/v1/users/${id}`, {
-        method: "PUT",
-        headers: {
-          ...(await getNextAuthHeaders()),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(data),
-      });
-      return response.json();
-    },
-  },
-
   // Auth
   auth: {
     login: async (data: any) => {
@@ -216,16 +177,9 @@ export const api = {
       return response;
     },
     logout: async () => {
-      // Note: This endpoint might not exist in the current API schema
-      // Using a fallback approach for now
-      const response = await fetch(
-        `${config.api.baseUrl}/api/v1/auth/jwt/logout`,
-        {
-          method: "POST",
-          headers: await getNextAuthHeaders(),
-        }
-      );
-      return response.json();
+      // Logout is handled entirely on the frontend side
+      // No backend endpoint needed for stateless JWT tokens
+      return { message: "Logged out successfully" };
     },
   },
 

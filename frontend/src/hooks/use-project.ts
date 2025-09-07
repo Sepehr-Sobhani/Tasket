@@ -15,14 +15,6 @@ export function useProject(projectId: string) {
   });
 }
 
-export function useUsers() {
-  return useQuery<User[]>({
-    queryKey: ["users"],
-    queryFn: () => api.users.getAll(),
-    staleTime: 10 * 60 * 1000, // 10 minutes
-  });
-}
-
 export function useDefaultProject() {
   return useQuery<Project>({
     queryKey: ["default-project"],
