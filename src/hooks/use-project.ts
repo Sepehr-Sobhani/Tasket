@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import type { Project } from "./use-dashboard";
+import type { Project } from "@/types/api-common";
 
 export function useProject(projectId: string) {
   return useQuery<Project>({

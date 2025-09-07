@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import type { Project } from "./use-dashboard";
+import type { Project } from "@/types/api-common";
 import type { ProjectCreateInput } from "@/lib/validations/project";
 
 export function useCreateProject() {
