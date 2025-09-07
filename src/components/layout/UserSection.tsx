@@ -1,3 +1,5 @@
+import { useRouter } from "next/navigation";
+import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
@@ -13,10 +15,16 @@ import { LogOut } from "lucide-react";
 interface UserSectionProps {
   user: any;
   isCollapsed: boolean;
-  onLogout: () => void;
 }
 
-export function UserSection({ user, isCollapsed, onLogout }: UserSectionProps) {
+export function UserSection({ user, isCollapsed }: UserSectionProps) {
+  const { logout } = useAuth();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    logout();
+    router.push("/");
+  };
   return (
     <div className="border-t p-3">
       <DropdownMenu>
@@ -63,7 +71,7 @@ export function UserSection({ user, isCollapsed, onLogout }: UserSectionProps) {
           </DropdownMenuLabel>
           <DropdownMenuSeparator className="my-1" />
           <DropdownMenuItem
-            onClick={onLogout}
+            onClick={handleLogout}
             className="text-red-600 hover:text-red-700 hover:bg-red-50 rounded-md p-2 cursor-pointer transition-colors"
           >
             <LogOut className="mr-2 h-4 w-4" />

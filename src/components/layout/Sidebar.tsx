@@ -8,10 +8,9 @@ import { UserSection } from "./UserSection";
 
 interface SidebarProps {
   user: any;
-  onLogout: () => void;
 }
 
-export function Sidebar({ user, onLogout }: SidebarProps) {
+export function Sidebar({ user }: SidebarProps) {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
@@ -32,11 +31,7 @@ export function Sidebar({ user, onLogout }: SidebarProps) {
           <SidebarNavigation isCollapsed={isCollapsed} />
         </div>
 
-        <UserSection
-          user={user}
-          isCollapsed={isCollapsed}
-          onLogout={onLogout}
-        />
+        <UserSection user={user} isCollapsed={isCollapsed} />
       </div>
     </div>
   );

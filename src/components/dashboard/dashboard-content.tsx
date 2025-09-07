@@ -1,0 +1,210 @@
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useCreateProject } from "@/hooks/use-project-mutations";
+import { useProjects } from "@/hooks/use-project";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { CreateProjectForm } from "@/components/project/CreateProjectForm";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Calendar, Users, Eye, EyeOff } from "lucide-react";
+
+interface DashboardContentProps {
+  user: {
+    id: string;
+    username: string;
+    fullName?: string;
+  };
+}
+
+export function DashboardContent({ user }: DashboardContentProps) {
+  const router = useRouter();
+  const [showCreateProject, setShowCreateProject] = useState(false);
+
+  const { mutateAsync: createProject, isPending: isCreating } =
+    useCreateProject();
+
+  const { data: projects } = useProjects();
+
+  // Type assertion to help TypeScript understand the data structure
+  const projectsList = (projects as any[]) || [];
+
+  const handleCreateProject = async (projectData: {
+    name: string;
+    description?: string;
+    visibility: "public" | "private";
+  }) => {
+    const newProject = await createProject(projectData);
+    setShowCreateProject(false);
+    // Redirect to the new project
+    router.push(`/projects/${newProject.id}`);
+  };
+
+  return (
+    <>
+      <div className="space-y-8">
+        {/* Welcome Header */}
+        <div className="flex items-center justify-between">
+          <div>
+            <h1 className="text-3xl font-bold tracking-tight text-foreground">
+              Welcome back, {user.fullName || user.username}!
+            </h1>
+          </div>
+        </div>
+
+        {/* Recent Projects */}
+        {projectsList && projectsList.length > 0 && (
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+                Recent Projects
+              </h2>
+              <Button
+                onClick={() => setShowCreateProject(true)}
+                variant="outline"
+                className="border-primary text-primary hover:bg-primary/10"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                New Project
+              </Button>
+            </div>
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {projectsList.slice(0, 6).map((project: any) => (
+                <Card
+                  key={project.id}
+                  className="border-primary/20 bg-primary/5 hover:bg-primary/10 transition-all duration-200 hover:shadow-md cursor-pointer"
+                  onClick={() => router.push(`/projects/${project.id}`)}
+                >
+                  <CardHeader className="pb-3">
+                    <div className="flex items-start justify-between">
+                      <CardTitle className="text-lg text-primary line-clamp-1">
+                        {project.name}
+                      </CardTitle>
+                      <div className="flex items-center space-x-1">
+                        {project.visibility === "private" ? (
+                          <EyeOff className="h-4 w-4 text-muted-foreground" />
+                        ) : (
+                          <Eye className="h-4 w-4 text-muted-foreground" />
+                        )}
+                      </div>
+                    </div>
+                    {project.description && (
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {project.description}
+                      </p>
+                    )}
+                  </CardHeader>
+                  <CardContent className="pt-0">
+                    <div className="flex items-center justify-between text-sm text-muted-foreground">
+                      <div className="flex items-center space-x-1">
+                        <Users className="h-4 w-4" />
+                        <span>
+                          {project.memberCount} member
+                          {project.memberCount !== 1 ? "s" : ""}
+                        </span>
+                      </div>
+                      <div className="flex items-center space-x-1">
+                        <Calendar className="h-4 w-4" />
+                        <span>
+                          {new Date(project.createdAt).toLocaleDateString(
+                            "en-US",
+                            {
+                              month: "short",
+                              day: "numeric",
+                            }
+                          )}
+                        </span>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Getting Started - Only show if no projects */}
+        {(!projectsList || projectsList.length === 0) && (
+          <div className="space-y-4">
+            <Card className="border-primary/20 bg-primary/5">
+              <CardHeader>
+                <CardTitle className="text-primary">
+                  Welcome to Flowmate!
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <p className="text-muted-foreground">
+                  You&apos;re all set up! Here are some things you can do to get
+                  started:
+                </p>
+                <div className="space-y-3">
+                  <div className="flex items-center space-x-3">
+                    <Badge
+                      variant="outline"
+                      className="border-primary text-primary"
+                    >
+                      1
+                    </Badge>
+                    <span className="text-sm">
+                      Create your first project to organize your work
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Badge
+                      variant="outline"
+                      className="border-primary text-primary"
+                    >
+                      2
+                    </Badge>
+                    <span className="text-sm">
+                      Invite team members to collaborate
+                    </span>
+                  </div>
+                  <div className="flex items-center space-x-3">
+                    <Badge
+                      variant="outline"
+                      className="border-primary text-primary"
+                    >
+                      3
+                    </Badge>
+                    <span className="text-sm">
+                      Start creating tasks and tracking progress
+                    </span>
+                  </div>
+                </div>
+                <Button
+                  onClick={() => setShowCreateProject(true)}
+                  className="bg-primary hover:bg-primary/90 text-white mt-4"
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Create Your First Project
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+      </div>
+
+      {/* Create Project Dialog */}
+      <Dialog open={showCreateProject} onOpenChange={setShowCreateProject}>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Create New Project</DialogTitle>
+          </DialogHeader>
+          <CreateProjectForm
+            onSubmit={handleCreateProject}
+            onCancel={() => setShowCreateProject(false)}
+            isLoading={isCreating}
+          />
+        </DialogContent>
+      </Dialog>
+    </>
+  );
+}
