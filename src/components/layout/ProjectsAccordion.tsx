@@ -5,10 +5,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { FolderOpen, ChevronDown } from "lucide-react";
 import { api } from "@/lib/api-client";
-import { components } from "@/types/api-common";
-
-// Use the auto-generated types from OpenAPI
-type Project = (typeof components)["schemas"]["Project"];
+import type { Project } from "@/types/api-common";
 
 interface ProjectsAccordionProps {
   isCollapsed: boolean;

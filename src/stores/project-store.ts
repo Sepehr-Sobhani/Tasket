@@ -26,12 +26,19 @@ interface ProjectState {
   currentProject: Project | null;
   dashboardStats: DashboardStats | null;
   isLoading: boolean;
+  // eslint-disable-next-line no-unused-vars
   setProjects: (projects: Project[]) => void;
+  // eslint-disable-next-line no-unused-vars
   setCurrentProject: (project: Project | null) => void;
+  // eslint-disable-next-line no-unused-vars
   setDashboardStats: (stats: DashboardStats | null) => void;
+  // eslint-disable-next-line no-unused-vars
   setLoading: (loading: boolean) => void;
+  // eslint-disable-next-line no-unused-vars
   addProject: (project: Project) => void;
+  // eslint-disable-next-line no-unused-vars
   updateProject: (id: string, updates: Partial<Project>) => void;
+  // eslint-disable-next-line no-unused-vars
   removeProject: (id: string) => void;
 }
 

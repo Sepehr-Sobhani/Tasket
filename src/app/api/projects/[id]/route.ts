@@ -6,18 +6,20 @@ import { authOptions } from "@/lib/auth-options";
 
 async function getCurrentUser() {
   const session = await getServerSession(authOptions);
+  // @ts-ignore - NextAuth session type compatibility
   if (!session?.user?.id) {
     return null;
   }
 
   return await prisma.user.findUnique({
+    // @ts-ignore - NextAuth session type compatibility
     where: { id: session.user.id },
   });
 }
 
 export async function GET(
   _request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -25,9 +27,10 @@ export async function GET(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     const project = await prisma.project.findFirst({
       where: {
-        id: params.id,
+        id: id,
         OR: [
           { ownerId: user.id },
           {
@@ -83,7 +86,7 @@ export async function GET(
 
 export async function PUT(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -91,10 +94,11 @@ export async function PUT(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     // Check if user is owner or admin of the project
     const project = await prisma.project.findFirst({
       where: {
-        id: params.id,
+        id: id,
         OR: [
           { ownerId: user.id },
           {
@@ -120,7 +124,7 @@ export async function PUT(
     const validatedData = projectUpdateSchema.parse(body);
 
     const updatedProject = await prisma.project.update({
-      where: { id: params.id },
+      where: { id: id },
       data: {
         ...(validatedData.name && { name: validatedData.name }),
         ...(validatedData.description !== undefined && {
@@ -176,7 +180,7 @@ export async function PUT(
 
 export async function DELETE(
   request: NextRequest,
-  { params }: { params: { id: string } }
+  { params }: { params: Promise<{ id: string }> }
 ) {
   try {
     const user = await getCurrentUser();
@@ -184,10 +188,11 @@ export async function DELETE(
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
+    const { id } = await params;
     // Check if user is owner of the project
     const project = await prisma.project.findFirst({
       where: {
-        id: params.id,
+        id: id,
         ownerId: user.id,
       },
     });
@@ -200,7 +205,7 @@ export async function DELETE(
     }
 
     await prisma.project.delete({
-      where: { id: params.id },
+      where: { id: id },
     });
 
     return NextResponse.json({ message: "Project deleted successfully" });

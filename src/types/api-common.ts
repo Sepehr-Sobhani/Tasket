@@ -64,15 +64,3 @@ export interface DashboardStats {
   totalMembers: number;
   recentActivity: number;
 }
-
-// Components for form schemas and validation
-export const components = {
-  schemas: {
-    User: {} as User,
-    Project: {} as Project,
-    ProjectMember: {} as ProjectMember,
-    DashboardStats: {} as DashboardStats,
-    ApiResponse: {} as ApiResponse,
-    PaginatedResponse: {} as PaginatedResponse<any>,
-  },
-};

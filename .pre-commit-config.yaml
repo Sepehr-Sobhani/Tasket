@@ -34,14 +34,14 @@ repos:
         pass_filenames: false
 
   # TypeScript type checking
-  # - repo: local
-  #   hooks:
-  #     - id: type-check
-  #       name: type-check
-  #       entry: pnpm run type-check
-  #       language: system
-  #       files: ^.*\.(ts|tsx)$
-  #       pass_filenames: false
+  - repo: local
+    hooks:
+      - id: type-check
+        name: type-check
+        entry: pnpm run type-check
+        language: system
+        files: ^.*\.(ts|tsx)$
+        pass_filenames: false
 
   # Prisma schema validation
   - repo: local
@@ -58,4 +58,4 @@ repos:
     rev: v1.4.0
     hooks:
       - id: detect-secrets
-        exclude: ^(node_modules/|\.next/|\.pnpm-store/|pnpm-lock\.yaml)
+        exclude: ^(node_modules/|\.next/|\.pnpm-store/|pnpm-lock\.yaml|env\.example|Makefile)

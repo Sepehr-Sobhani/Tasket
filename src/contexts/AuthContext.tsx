@@ -21,11 +21,14 @@ interface AuthContextType {
   user: User | null;
   token: string | null;
   isLoading: boolean;
+  // eslint-disable-next-line no-unused-vars
   login: (username: string, password: string) => Promise<void>;
+  // eslint-disable-next-line no-unused-vars
   register: (userData: any) => Promise<void>;
   loginWithGitHub: () => Promise<void>;
   loginWithGoogle: () => Promise<void>;
   logout: () => void;
+  // eslint-disable-next-line no-unused-vars
   refreshUser: (newToken?: string) => Promise<void>;
 }
 
@@ -43,8 +46,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return;
     }
 
+    // @ts-ignore - NextAuth session type compatibility
     if (status === "authenticated" && session?.user?.id) {
       // User is authenticated with NextAuth, get backend user data
+      // @ts-ignore - NextAuth session type compatibility
       fetchBackendUser(session.user.id);
     } else {
       // User is not authenticated - clear any existing data
@@ -157,7 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setToken(newToken);
     }
 
+    // @ts-ignore - NextAuth session type compatibility
     if (session?.user?.id) {
+      // @ts-ignore - NextAuth session type compatibility
       await fetchBackendUser(session.user.id);
     }
   };

@@ -15,6 +15,7 @@ import {
 import { Loading } from "@/components/ui/loading";
 
 interface CreateProjectFormProps {
+  // eslint-disable-next-line no-unused-vars
   onSubmit: (data: {
     name: string;
     description: string;

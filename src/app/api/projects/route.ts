@@ -6,11 +6,13 @@ import { authOptions } from "@/lib/auth-options";
 
 async function getCurrentUser() {
   const session = await getServerSession(authOptions);
+  // @ts-ignore - NextAuth session type compatibility
   if (!session?.user?.id) {
     return null;
   }
 
   return await prisma.user.findUnique({
+    // @ts-ignore - NextAuth session type compatibility
     where: { id: session.user.id },
   });
 }

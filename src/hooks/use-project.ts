@@ -1,10 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api-client";
-import { components } from "@/types/api-common";
-
-// Use the auto-generated types from OpenAPI
-type Project = (typeof components)["schemas"]["Project"];
-// type User = components["schemas"]["User"];
+import type { Project } from "@/types/api-common";
 
 export function useProject(projectId: string) {
   return useQuery<Project>({

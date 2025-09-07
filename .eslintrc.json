@@ -15,9 +15,9 @@
   },
   "overrides": [
     {
-      "files": ["*.ts", "*.tsx"],
+      "files": ["*.d.ts"],
       "rules": {
-        "no-unused-vars": "off"
+        "no-unused-vars": "warn"
       }
     }
   ]

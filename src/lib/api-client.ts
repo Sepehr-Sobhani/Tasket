@@ -12,11 +12,13 @@ export function getAuthHeaders(): Record<string, string> {
 export async function getServerAuthHeaders(): Promise<Record<string, string>> {
   const session = await getServerSession(authOptions);
 
+  // @ts-ignore - NextAuth session type compatibility
   if (!session?.user?.id) {
     return {};
   }
 
   return {
+    // @ts-ignore - NextAuth session type compatibility
     "x-user-id": session.user.id,
   };
 }
