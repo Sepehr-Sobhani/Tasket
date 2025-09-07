@@ -9,6 +9,7 @@ from fastapi.middleware.trustedhost import TrustedHostMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 
 from app.api.v1.api import api_router
+from app.core.auth_middleware import AuthMiddleware
 from app.core.config import settings
 
 # Force load .env file before anything else
@@ -73,6 +74,21 @@ app.add_middleware(
 # Trusted host middleware
 app.add_middleware(
     TrustedHostMiddleware, allowed_hosts=["localhost", "127.0.0.1", "0.0.0.0", "*"]
+)
+
+# Authentication middleware - automatically protects all routes
+app.add_middleware(
+    AuthMiddleware,
+    public_paths=[
+        "/",
+        "/health",
+        "/docs",
+        "/redoc",
+        "/openapi.json",
+        "/api/v1/auth/oauth/user",
+        "/api/v1/auth/exchange-token",
+        "/api/v1/auth/refresh",
+    ],
 )
 
 # Session middleware (kept for potential future use)

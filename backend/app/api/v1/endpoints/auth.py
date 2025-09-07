@@ -2,17 +2,17 @@ from datetime import timedelta
 from typing import Any
 
 import jwt
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from jwt.exceptions import InvalidTokenError
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth_helpers import get_current_user_from_request
 from app.core.config import settings
 from app.core.database import get_async_session
 from app.core.security import (
     create_access_token,
     create_refresh_token,
-    get_current_active_user,
 )
 from app.models.user import OAuthAccount, User
 from app.schemas.auth import RefreshTokenRequest, Token
@@ -184,7 +184,9 @@ async def refresh_token(
 
 @router.get("/me", response_model=UserSchema)
 async def get_current_user(
-    current_user: User = Depends(get_current_active_user),
+    request: Request,
 ) -> Any:
     """Get current user information"""
+    # Get current user from request state (automatically authenticated by middleware)
+    current_user = get_current_user_from_request(request)
     return current_user

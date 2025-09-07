@@ -1,26 +1,28 @@
 from typing import Any
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.core.auth_helpers import get_current_user_from_request
 from app.core.database import get_async_session
-from app.core.security import get_current_active_user
 from app.models.project import Project, ProjectMember, ProjectMemberRole
-from app.models.user import User
 from app.schemas.dashboard import DashboardStats
 from app.schemas.project import Project as ProjectSchema
-from app.schemas.project import ProjectCreate, ProjectUpdate
+from app.schemas.project import ProjectCreate
 
 router = APIRouter()
 
 
 @router.get("/default", response_model=ProjectSchema)
 async def get_default_project(
+    request: Request,
     session: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """Get the user's default project"""
+    # Get current user from request state (automatically authenticated by middleware)
+    current_user = get_current_user_from_request(request)
+
     # Query for the user's default project
     query = (
         select(Project)
@@ -39,12 +41,15 @@ async def get_default_project(
 
 @router.get("/", response_model=list[ProjectSchema])
 async def get_projects(
+    request: Request,
     skip: int = 0,
     limit: int = 100,
     session: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """Get all projects for the current user"""
+    # Get current user from request state (automatically authenticated by middleware)
+    current_user = get_current_user_from_request(request)
+
     # Query projects where the user is a member
     query = (
         select(Project)
@@ -63,10 +68,13 @@ async def get_projects(
 
 @router.get("/stats/dashboard", response_model=DashboardStats)
 async def get_dashboard_stats(
+    request: Request,
     session: AsyncSession = Depends(get_async_session),
-    current_user: User = Depends(get_current_active_user),
 ) -> Any:
     """Get dashboard statistics for the current user"""
+    # Get current user from request state (automatically authenticated by middleware)
+    current_user = get_current_user_from_request(request)
+
     # Query projects where the user is a member
     query = (
         select(Project)
@@ -103,9 +111,12 @@ async def create_project(
     *,
     session: AsyncSession = Depends(get_async_session),
     project_in: ProjectCreate,
-    current_user: User = Depends(get_current_active_user),
+    request: Request,
 ) -> Any:
     """Create new project"""
+    # Get current user from request state (automatically authenticated by middleware)
+    current_user = get_current_user_from_request(request)
+
     project = Project(**project_in.dict())
     session.add(project)
     await session.commit()
@@ -126,9 +137,12 @@ async def get_project(
     *,
     session: AsyncSession = Depends(get_async_session),
     project_id: str,
-    current_user: User = Depends(get_current_active_user),
+    request: Request,
 ) -> Any:
     """Get project by ID"""
+    # Get current user from request state (automatically authenticated by middleware)
+    current_user = get_current_user_from_request(request)
+
     query = (
         select(Project)
         .join(ProjectMember)
@@ -142,67 +156,3 @@ async def get_project(
         raise HTTPException(status_code=404, detail="Project not found")
 
     return project
-
-
-@router.put("/{project_id}", response_model=ProjectSchema)
-async def update_project(
-    *,
-    session: AsyncSession = Depends(get_async_session),
-    project_id: str,
-    project_in: ProjectUpdate,
-    current_user: User = Depends(get_current_active_user),
-) -> Any:
-    """Update project"""
-    query = (
-        select(Project)
-        .join(ProjectMember)
-        .where(
-            Project.id == project_id,
-            ProjectMember.user_id == current_user.id,
-            ProjectMember.role.in_([ProjectMemberRole.ADMIN, ProjectMemberRole.OWNER]),
-        )
-    )
-
-    result = await session.execute(query)
-    project = result.scalar_one_or_none()
-
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    for field, value in project_in.dict(exclude_unset=True).items():
-        setattr(project, field, value)
-
-    await session.commit()
-    await session.refresh(project)
-
-    return project
-
-
-@router.delete("/{project_id}")
-async def delete_project(
-    *,
-    session: AsyncSession = Depends(get_async_session),
-    project_id: str,
-    current_user: User = Depends(get_current_active_user),
-) -> Any:
-    """Delete project"""
-    query = (
-        select(Project)
-        .join(ProjectMember)
-        .where(
-            Project.id == project_id,
-            ProjectMember.user_id == current_user.id,
-            ProjectMember.role == ProjectMemberRole.OWNER,
-        )
-    )
-
-    result = await session.execute(query)
-    project = result.scalar_one_or_none()
-
-    if not project:
-        raise HTTPException(status_code=404, detail="Project not found")
-
-    await session.delete(project)
-    await session.commit()
-
-    return {"message": "Project deleted successfully"}
